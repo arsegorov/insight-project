@@ -48,8 +48,6 @@ def lazyread(f, delimiter):
             raise
 
     while True:
-		# Empirically increased the buffer chunk size from the original 1024.
-		# This way the reading seems to be faster
         new_data = f.read(102400)
 
         # When a call to read() returns nothing, we're at the end of the file.
