@@ -31,6 +31,9 @@ MANIFEST
 *.manifest
 *.spec
 
+# Lambda package
+*.zip
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
