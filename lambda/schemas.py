@@ -7,6 +7,7 @@ from psycopg2.extras import execute_batch
 
 schemas_table = 'schemas'
 schema_pattern_field, schema_pattern_props = 'schema_pattern', 'text PRIMARY KEY'
+schema_desc_field, schema_desc_props = 'schema_desc', 'text'
 schema_tables_field, schema_tables_props = 'schema_tables', 'json NOT NULL'
 
 
@@ -19,6 +20,7 @@ def create_schemas_meta_table(connection):
     cur = connection.cursor()
     cur.execute(f"CREATE TABLE IF NOT EXISTS {schemas_table} ("
                 f"{schema_pattern_field} {schema_pattern_props},"
+                f"{schema_desc_field} {schema_desc_props},"
                 f"{schema_tables_field} {schema_tables_props});")
 
     connection.commit()
@@ -41,21 +43,20 @@ def process_schema(schema_json, connection):
     for tb in tables:
         create_table_from_schema(tb, connection)
 
-    pattern = schema["pattern"]
-    add_schema(pattern, tables, connection)
+    add_schema(schema, connection)
 
 
-def add_schema(pattern, tables, connection):
+def add_schema(schema_json, connection):
     """
     Adds a schema to the meta info table.
 
-    :param pattern: the pattern triggering the schema when the file's name matches it;
-            this pattern is used with the ``LIKE`` keyword in Postgres
-    :param tables: information about the tables created for this schema;
-            this parameter is supposed to follow the general format of a JSON array
-    :type tables: list(dict)
+    :param schema_json: the schema to be added
+    :type schema_json: dict
     :param connection: a connection to the database
     """
+    decsription = schema_json['description']
+    tables = schema_json['tables']
+    pattern = schema_json['pattern']
 
     # Converting the `tables` array to a JSON string, also escaping the apostrophes for SQL
     tables_json = "'[" + \
@@ -65,9 +66,9 @@ def add_schema(pattern, tables, connection):
 
     cur = connection.cursor()
     cur.execute(f"INSERT INTO {schemas_table} "
-                f"({schema_pattern_field}, {schema_tables_field}) "
+                f"({schema_pattern_field}, {schema_desc_field}, {schema_tables_field}) "
                 "VALUES "
-                f"('{pattern}', {tables_json}) "
+                f"('{pattern}', '{decsription}', {tables_json}) "
                 f"ON CONFLICT DO NOTHING;")
     connection.commit()
 

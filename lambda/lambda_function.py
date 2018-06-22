@@ -39,22 +39,22 @@ def main(event, context):
     bucket_name = event['Records'][0]['s3']['bucket']['name']
     object_key = event['Records'][0]['s3']['object']['key']
 
-    object = s3.Object(bucket_name, object_key)
+    obj = s3.Object(bucket_name, object_key)
 
     if object_key[-6:] == 'schema':
-        body = object.get()['Body']
+        body = obj.get()['Body']
         schema_json = body.read().decode('utf-8')
         schemas.process_schema(schema_json, connection)
         return 0
 
     if object_key[-3:] == 'csv':
         schema = schemas.find_schema(object_key, connection)
-        if schema == None:
+        if schema is None:
             print(f"An appropriate schema for the file {object_key} hasn't been found.")
             return 0
 
         tables = schema[1]
-        body = object.get()['Body']
+        body = obj.get()['Body']
 
         parse_record = {}
         write_to_db = {}
