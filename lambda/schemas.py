@@ -194,13 +194,30 @@ def generate_data_processors(table_json, connection):
             ``write_to_db`` writes a batch of parsed records
             to the appropriate table in the database
     """
+    
+    parser = {
+        'integer': lambda x: int(x),
+        'smallint': lambda x: int(x),
+        'state2': lambda x: x.upper(),
+        'text': lambda x: x.upper(),
+        'real': lambda x: float(x)
+    }
 
-    def parse_record(fields):
+    def parse_record(fields, line_number, log, existing_pk_values, tb_name):
         """
         Converts the fields specified in the table's description to the appropriate types,
         and forms a record to be sent to the database.
 
         :param fields: all the fields contained in a line
+        :type fields: list(str)
+        :param line_number: the number of the line being parsed
+        :type line_number: int
+        :param log: a logging function
+        :param existing_pk_values: the set of existing primary-key values in the table
+        :type existing_pk_values: set(tuple)
+        :param tb_name: the name of the table for which the record is being parsed
+        :type tb_name: str
+
         :return: a dict containing the fields of the record
         :type: dict
         """
@@ -211,28 +228,45 @@ def generate_data_processors(table_json, connection):
             fd_props = field_decriptions[fd]
             fd_type = fd_props['type']
             fd_column = fd_props['column']
+            fd_nullable = fd_props['nullable'] if 'nullable' in fd_props else True
             fd_val = fields[fd_column]
 
-            if fd_type in ('integer', 'smallint'):
-                record[fd] = int(fd_val) if fd_val != 'NULL' else None
+            try:
+                if fd_type in ('integer', 'smallint', 'state2', 'text', 'real'):
+                    record[fd] = parser[fd_type](fd_val) if fd_val != 'NULL' else None
 
-            elif fd_type in ('state2', 'text'):
-                record[fd] = fd_val.upper() if fd_val != 'NULL' else None
+                elif fd_type == 'zip':
+                    zip_code = normalized_zip_code(fd_val) if fd_val != 'NULL' else [None, None]
+                    record[fd] = zip_code[0]
+                    record[fd + '_ext'] = zip_code[1]
 
-            elif fd_type == 'zip':
-                zip_code = normalized_zip_code(fd_val) if fd_val != 'NULL' else [None, None]
-                record[fd] = zip_code[0]
-                record[fd + '_ext'] = zip_code[1]
+                elif fd_type == 'enum':
+                    values = fd_props['values']
+                    record[fd] = values[fd_val] if fd_val != 'NULL' else None
 
-            elif fd_type == 'enum':
-                values = fd_props['values']
-                record[fd] = values[fd_val] if fd_val != 'NULL' else None
+                else:
+                    record[fd] = fd_val if fd_val != 'NULL' else None
 
-            elif fd_type == 'real':
-                record[fd] = float(fd_val) if fd_val != 'NULL' else None
+            except ValueError:
+                log(f'\tparse_record: [error] An unexpected value of `{fd_val}` in the `{fd}` field, line {line_number}'
+                    f' \n'
+                    f'\t                      Expecting a value of type `{fd_type}`\n'
+                    f'\t                      Skipping line {line_number}\n')
+                return None
 
-            else:
-                record[fd] = str(fd_val) if fd_val != 'NULL' else None
+            if not fd_nullable and record[fd] is None:
+                log(f'\tparse_record: [error] Found a NULL for the NOT NULL field `{fd}`, line {line_number}\n'
+                    f'\t                      Skipping line {line_number}\n')
+                return None
+
+        record_pk = tuple(record[fd] for fd in table_json['primary_key'])
+
+        if record_pk in existing_pk_values:
+            log(f'\tparse_record: [warn] The primary-key value of `{record_pk}` already exists in table {tb_name}\n'
+                f'\t                     Skipping line {line_number}\n')
+            return {}
+        else:
+            existing_pk_values.add(record_pk)
 
         return record
 
@@ -244,6 +278,7 @@ def generate_data_processors(table_json, connection):
 
         :param records_batch:
         :type records_batch: list(dict)
+        :param log: a logging function
         """
         cur = connection.cursor()
 

@@ -109,3 +109,4 @@ venv.bak/
 *~
 *.iml
 .idea/
+/misc/
