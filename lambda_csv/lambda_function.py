@@ -148,7 +148,7 @@ def main(event, context):
 
 logs_table = 'logs'
 table_name_field, table_name_props = 'table_name', 'text'
-timestamp_field, timestamp_props = 'timestamp_desc', 'timestamp'
+timestamp_field, timestamp_props = 'date_time_utc', 'timestamp'
 message_field, message_props = 'message', 'text'
 
 

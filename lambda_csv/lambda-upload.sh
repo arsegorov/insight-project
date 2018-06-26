@@ -7,7 +7,7 @@ sed "1s/^/# Uploaded on $(date)\n\n/" lambda_function.py > tmp
 mv tmp lambda_function.py
 
 # Create a .zip file from the sources
-zip -r package.zip lambda_function.py lazyreader.py schemas.py psycopg2/
+zip -r package.zip *.py psycopg2/
 
 # Remove the timestamped version
 mv lambda_function.py~ lambda_function.py
