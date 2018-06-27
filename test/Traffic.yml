@@ -1,0 +1,25 @@
+meta:
+  files: '%Trafficspeed.xml'
+  version: '2018-06-26T23:13:00Z'
+  description: 'Data from traffic speed and flow sensors, source - NDW, the Netherlands'
+processing:
+  prefixes:
+    xsi: 'http://www.w3.org/2001/XMLSchema-instance'
+    ns0: 'http://schemas.xmlsoap.org/soap/envelope/'
+    ns1: 'http://datex2.eu/schema/2/2_0'
+  data:
+    ns1.siteMeasurements[]:
+      ns1.measurementSiteReference: _.id, str, measurementSiteReference  # key
+      ns1.measurementTimeDefault: text, timestamp, measurementTimeDefault  # sort
+      ns1.measuredValue[]:
+      - _: '.[@index]'
+        _.index: int, Channel
+        ns1.basicData:
+        - _: '.[@xsi:type="TrafficFlow"]'
+          _.xsi.type: text, Type
+          ns1.vehicleFlowRate: text, float, Flow
+        - _: '.[@xsi:type="TrafficSpeed"]'
+          _.xsi.type: text, Type
+          ns1.averageVehicleSpeed:
+            _.numberOfInputValuesUsed: int, InputSize
+            ns1.speed: text, float, Speed
