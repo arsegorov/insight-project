@@ -66,7 +66,7 @@ def main(event, context):
         body = obj.get()['Body'].read().decode('utf-8')
         xml_data = fromstring(body)
 
-        schema = schemas_xml.find_schema(object_key,connection)
+        schema = schemas_xml.find_schema(object_key, connection)
 
         prefix = schema[3]['prefixes']
         data_schema = schema[3]['data']

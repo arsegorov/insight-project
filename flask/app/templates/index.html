@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload status - {{date[:19]}}</title>
+
+    <script type="text/javascript">
+        function draw() {
+            var canvas = document.getElementById('updateCanvas');
+            var ctx = canvas.getContext('2d');
+
+            const cx = 100, cy = 100, r = 100;
+            const start = -Math.PI/2;
+            const end = start + 2*Math.PI;
+
+            // let progress = start + Math.PI * seconds('{{date}}') / 30;
+            // document.getElementById('percent').innerHTML = ('' + Math.round(100*progress/2/Math.PI + 25));
+
+            ctx.strokeStyle = '#000000';
+            ctx.fillStyle = '#bfffbf';
+            drawSector(ctx, cx, cy, r, start, progress);
+
+            ctx.fillStyle = '#ffbfbf';
+            drawSector(ctx, cx, cy, r, progress, end);
+        }
+
+        function drawSector(ctx, x, y, r, start, end) {
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + r*Math.cos(start), y + r*Math.sin(start));
+            ctx.arc(x, y, r, start, end);
+            ctx.lineTo(x, y);
+            ctx.fill();
+        }
+
+        function seconds(timestamp) {
+            return parseInt(timestamp.split(':')[2].split(' ')[0])
+        }
+
+        function update(t) {
+            setTimeout("location.reload(true)", t);
+            draw();
+        }
+
+        function rectangularStatus() {
+            const canvas = document.getElementById('updateCanvas');
+            const width = canvas.width, height = canvas.height;
+
+            const ctx = canvas.getContext('2d');
+
+            let status = [], data = {{data}};
+            const n_hours = data && data.length > 0 ?data.length :24,
+                n_minutes = data && data.length > 0 && data[0] && data[0].length > 0 ?data[0].length :60;
+            const rec_width = width/n_hours, rec_height = (height - 20)/n_minutes;
+
+            let progress = seconds('{{date}}') / 60;
+            document.getElementById('percent').innerHTML = ('' + Math.round(100*progress));
+
+            for (i = 0; i < n_hours; i++) {
+                status.push([]);
+                ctx.fillStyle = '#000000';
+                text = '' + i;
+                textWidth = ctx.measureText(text).width;
+                ctx.fillText('' + i, 10 + i*rec_width - textWidth/2, height);
+
+                for (j = 0; j < n_minutes; j++) {
+                    status[i].push(data[i][j]);
+
+                    if (status[i][j] == 0) {
+                        ctx.fillStyle = '#ffbfbf';
+                    }
+                    else {
+                        ctx.fillStyle = '#bfffbf';
+                    }
+                    ctx.fillRect(5 + i*rec_width, 1 + j*(rec_height), rec_width - 10, rec_height - 2);
+                }
+            }
+        }
+
+
+    </script>
+
+</head>
+
+<!--<body onload="update(5000);">-->
+<body onload="rectangularStatus();">
+
+<h3>Update status</h3>
+
+<form>
+    <div>
+        <label for="date">Select date:</label> <select id="date"></select>
+    </div>
+</form>
+<p><span id = "percent"></span>% of the files processed</p>
+
+<canvas id="updateCanvas"
+        width="480px" height="320px"></canvas>
+
+</body>
+</html>
