@@ -11,6 +11,7 @@ file_pattern_field, file_pattern_props = 'file_pattern', 'text'
 schema_time_field, schema_time_props = 'schema_datetime_utc', 'timestamp'
 schema_desc_field, schema_desc_props = 'schema_description', 'text'
 proc_schema_field, proc_schema_props = 'processing_schema', 'json NOT NULL'
+xml_schemas_pk = f'{file_pattern_field}, {schema_time_field}'
 
 
 def create_schemas_meta_table(connection):
@@ -25,7 +26,7 @@ def create_schemas_meta_table(connection):
                 f"{schema_time_field} {schema_time_props},"
                 f"{schema_desc_field} {schema_desc_props},"
                 f"{proc_schema_field} {proc_schema_props},"
-                f"PRIMARY KEY ({file_pattern_field}, {schema_time_field}));")
+                f"PRIMARY KEY ({xml_schemas_pk}));")
 
     connection.commit()
 
@@ -51,11 +52,14 @@ def add_schema(schema, connection):
     processing_schema = json.dumps(schema['processing'])
 
     cur = connection.cursor()
-    cur.execute(f"INSERT INTO {xml_schemas_table} "
-                f"({file_pattern_field}, {schema_time_field}, {schema_desc_field}, {proc_schema_field}) "
-                "VALUES "
-                f"('{file_pattern}', '{time}', '{description}', '{processing_schema}'::json) "
-                f"ON CONFLICT DO NOTHING;")
+    cur.execute(
+        f"INSERT INTO {xml_schemas_table} "
+        f"({file_pattern_field}, {schema_time_field}, {schema_desc_field}, {proc_schema_field}) "
+                
+        "VALUES "
+        f"('{file_pattern}', '{time}', '{description}', '{processing_schema}'::json) "
+                
+        f"ON CONFLICT DO NOTHING;")
     connection.commit()
 
 
@@ -72,10 +76,11 @@ def find_schema(object_key, connection):
     :type: tuple
     """
     cur = connection.cursor()
-    cur.execute(f"SELECT * FROM {xml_schemas_table} AS t "
-                f"WHERE '{object_key}' LIKE t.{file_pattern_field} "
-                f"ORDER BY {schema_time_field} DESC "
-                f"LIMIT 1;")
+    cur.execute(
+        f"SELECT * FROM {xml_schemas_table} AS t "
+        f"WHERE '{object_key}' LIKE t.{file_pattern_field} "
+        f"ORDER BY {schema_time_field} DESC "
+        f"LIMIT 1;")  # Todo: use the publication date from the xml to filter the schemas
 
     rows = cur.fetchall()
     return rows[0] if len(rows) > 0 else None

@@ -55,22 +55,26 @@ def main(event, context):
 
     obj = s3.Object(bucket_name, object_key)
 
+    # If the uploaded file is a schema, add it to the Postgres
     if object_key[-3:] == 'yml':
         body = obj.get()['Body']
         schema = yaml.load(body.read().decode('utf-8'))
         schemas_xml.add_schema(schema, connection)
 
+    # If the uploaded file is the actual data
     elif object_key[-3:] == 'xml':
-        t = time.time()
+        # Find the matching schema in the Postgres
+        schema = schemas_xml.find_schema(object_key, connection)
 
+        # Read the contents of the file
         body = obj.get()['Body'].read().decode('utf-8')
         xml_data = fromstring(body)
 
-        schema = schemas_xml.find_schema(object_key, connection)
-
+        # Load the schema
         prefix = schema[3]['prefixes']
         data_schema = schema[3]['data']
 
+        # Form the batch to upload to Dynamo
         data = schemas_xml \
             .extract_data(xml_data,
                           data_schema,
@@ -78,17 +82,13 @@ def main(event, context):
                           lambda x: 1) \
             .popitem()[1]
 
+        # Break the batch into reasonably sized chunks
         size = len(data)
-        for i in range(0, size, 500):
-            j = min(size, i + 500)
-            with traffic_table \
-                    .batch_writer(overwrite_by_pkeys=['measurementSiteReference', 'measurementTimeDefault']) as batch:
+        chunk_size = 500
+        for i in range(0, size, chunk_size):
+            j = min(size, i + chunk_size)
+            with traffic_table.batch_writer(
+                    overwrite_by_pkeys=['measurementSiteReference', 'measurementTimeDefault']
+            ) as batch:
                 for item in data[i:j]:
-                    # batch.delete_item(Key={
-                    #     'measurementSiteReference': item['measurementSiteReference'],
-                    #     'measurementTimeDefault': item['measurementTimeDefault']
-                    # })
                     batch.put_item(Item=item)
-
-            print(f'Items put: {i}-{j}\n'
-                  f'Elapsed time: {time.time() - t}')

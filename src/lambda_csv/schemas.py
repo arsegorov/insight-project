@@ -284,8 +284,10 @@ def generate_data_processors(table_json, connection):
 
         table = table_json['table']
         fields = table_json['fields']
+
         fields_list = ', '.join(fields.keys())
         values_list = ')s, %('.join(fields.keys())
+
         for fd in fields:
             if fields[fd]['type'] == 'zip':
                 fields_list += f', {fd}_ext'

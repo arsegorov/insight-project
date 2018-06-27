@@ -138,7 +138,6 @@ def main(event, context):
 
             write_log(tb_name, log[tb_name])
 
-        # connection.close()
         return 0
 
 

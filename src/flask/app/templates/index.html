@@ -5,34 +5,6 @@
     <title>Upload status - {{date[:19]}}</title>
 
     <script type="text/javascript">
-        function draw() {
-            var canvas = document.getElementById('updateCanvas');
-            var ctx = canvas.getContext('2d');
-
-            const cx = 100, cy = 100, r = 100;
-            const start = -Math.PI/2;
-            const end = start + 2*Math.PI;
-
-            // let progress = start + Math.PI * seconds('{{date}}') / 30;
-            // document.getElementById('percent').innerHTML = ('' + Math.round(100*progress/2/Math.PI + 25));
-
-            ctx.strokeStyle = '#000000';
-            ctx.fillStyle = '#bfffbf';
-            drawSector(ctx, cx, cy, r, start, progress);
-
-            ctx.fillStyle = '#ffbfbf';
-            drawSector(ctx, cx, cy, r, progress, end);
-        }
-
-        function drawSector(ctx, x, y, r, start, end) {
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x + r*Math.cos(start), y + r*Math.sin(start));
-            ctx.arc(x, y, r, start, end);
-            ctx.lineTo(x, y);
-            ctx.fill();
-        }
-
         function seconds(timestamp) {
             return parseInt(timestamp.split(':')[2].split(' ')[0])
         }
@@ -42,13 +14,14 @@
             draw();
         }
 
-        function rectangularStatus() {
+        function draw() {
             const canvas = document.getElementById('updateCanvas');
             const width = canvas.width, height = canvas.height;
 
             const ctx = canvas.getContext('2d');
 
             let status = [], data = {{data}};
+
             const n_hours = data && data.length > 0 ?data.length :24,
                 n_minutes = data && data.length > 0 && data[0] && data[0].length > 0 ?data[0].length :60;
             const rec_width = width/n_hours, rec_height = (height - 20)/n_minutes;
@@ -82,8 +55,8 @@
 
 </head>
 
-<!--<body onload="update(5000);">-->
-<body onload="rectangularStatus();">
+<!--<body onload="update(30000);">-->
+<body onload="draw();">
 
 <h3>Update status</h3>
 
