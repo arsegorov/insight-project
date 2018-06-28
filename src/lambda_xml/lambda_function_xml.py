@@ -7,6 +7,7 @@ import decimal
 from xml.etree.ElementTree import fromstring, ParseError
 import gzip
 import schemas_xml
+from logs import get_logger, write_log, succeeded, failed, processing
 
 ############
 # AWS stuff
@@ -50,6 +51,8 @@ def main(event, context):
     :param event: the event received from the s3 bucket
     :param context: the runtime environment information
     """
+    logger, log = get_logger()
+
     bucket_name = event['Records'][0]['s3']['bucket']['name']
     object_key = event['Records'][0]['s3']['object']['key']
 
@@ -57,56 +60,101 @@ def main(event, context):
 
     # If the uploaded file is a schema, add it to the Postgres
     if object_key[-3:] == 'yml':
+        log(f'Found a schema file, {object_key}')
+        write_log(logger, connection, object_key, processing)
+
         body = obj.get()['Body']
-        schema = yaml.load(body.read().decode('utf-8'))
-        schemas_xml.add_schema(schema, connection)
+
+        try:
+            schema = yaml.load(body.read().decode('utf-8'))
+            log(f'Read {object_key} from S3')
+
+            schemas_xml.add_schema(schema, connection)
+            log(f'Put the schema from {object_key} into the database')
+        except:
+            log(f"Couldn''t process {object_key}")
+            write_log(logger, connection, object_key, failed)
+            return
+
+        log(f'Schema processing finished')
+        write_log(logger, connection, object_key, succeeded)
 
     # If the uploaded file is the actual data
     elif object_key[-3:] == 'xml' or object_key[-2:] == 'gz':
+        log(f'Found a traffic data file, {object_key}')
+        write_log(logger, connection, object_key, processing)
+
         # Read the contents of the file
         body = obj.get()['Body'].read()
+        log(f'Read {object_key} from S3')
 
         # for gzip-compressed files, decompress first
         if object_key[-2:] == 'gz':
-            body = gzip.decompress(body)
-            object_key = object_key.replace('.gz', '.xml')
+            log('Found GZIP extension')
+            try:
+                body = gzip.decompress(body)
+                object_key = object_key.replace('.gz', '.xml')
+                log('Decompressed the GZIP data')
+            except:
+                log("Couldn''t decompress the GZIP data")
+                write_log(logger, connection, object_key, failed)
+                return
 
         try:
             xml_data = fromstring(body.decode('utf-8'))
         except ParseError:
-            # Todo: replace with a log message
-            print(f'Couldn\'t parse XML data from "{object_key.split(".")[0]}"')
+            log(f"Couldn''t parse XML data from \"{object_key.split('.')[0]}\"")
+            write_log(logger, connection, object_key, failed)
             return
 
         # Find the matching schema in the Postgres
-        date = next(xml_data.iter('{http://datex2.eu/schema/2/2_0}publicationTime')).text
-        schema = schemas_xml.find_schema(object_key, date, connection)
+        date = next(
+            xml_data.iter('{http://datex2.eu/schema/2/2_0}publicationTime')
+        ).text
+        schema = schemas_xml.find_schema(object_key, date,
+                                         connection)
 
         if schema is None:
-            # Todo: replace with a log message
-            print(f'Couldn\'t find a matching schema for '
-                  f'"{object_key.split(".")[0]}"')
+            log(f"Couldn''t find a matching schema for"
+                f' "{object_key.split(".")[0]}"'
+                f' in the database')
+            write_log(logger, connection, object_key, failed)
             return
 
+        log(f'Found a matching schema in the database')
+
         # Load the schema
-        prefix = schema[3]['prefixes']
-        data_schema = schema[3]['data']
+        try:
+            xml_prefixes = schema[3]['prefixes']
+            data_schema = schema[3]['data']
+        except:
+            log(f'Unexpected schema format')
+            write_log(logger, connection, object_key, failed)
+            return
 
         # Form the batch to upload to Dynamo
         data = schemas_xml \
             .extract_data(xml_data,
                           data_schema,
-                          prefix,
-                          lambda x: 1) \
+                          xml_prefixes,
+                          log) \
             .popitem()[1]
 
-        # Break the batch into reasonably sized chunks
         size = len(data)
+        log(f'Extracted data from the XML, readings for {size} locations found')
+        log(f'Begin writing to DynamoDB')
+
+        # Break the batch into reasonably sized chunks
         chunk_size = 500
         for i in range(0, size, chunk_size):
             j = min(size, i + chunk_size)
+
             with traffic_table.batch_writer(
                     overwrite_by_pkeys=['measurementSiteReference', 'measurementTimeDefault']
             ) as batch:
                 for item in data[i:j]:
                     batch.put_item(Item=item)
+
+            log(f'Sent data for items {i}-{j}')
+        log('Traffic data processing finished')
+        write_log(logger, connection, object_key, succeeded)

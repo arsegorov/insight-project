@@ -17,3 +17,4 @@ mv lambda_function.py~ lambda_function.py
 # Upload the updated function to the cloud
 aws lambda update-function-code --function-name preprocess --zip-file fileb://./package.zip --publish
 
+rm package.zip

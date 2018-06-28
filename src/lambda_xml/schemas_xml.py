@@ -8,7 +8,7 @@ from decimal import Decimal
 
 xml_schemas_table = 'xml_schemas'
 file_pattern_field, file_pattern_props = 'file_pattern', 'text'
-schema_time_field, schema_time_props = 'schema_datetime_utc', 'timestamp'
+schema_time_field, schema_time_props = 'schema_datetime_utc', 'timestamp without time zone'
 schema_desc_field, schema_desc_props = 'schema_description', 'text'
 proc_schema_field, proc_schema_props = 'processing_schema', 'json NOT NULL'
 xml_schemas_pk = f'{file_pattern_field}, {schema_time_field}'
@@ -79,7 +79,7 @@ def find_schema(object_key, date, connection):
     cur.execute(
         f"SELECT * FROM {xml_schemas_table} AS t "
         f"WHERE '{object_key}' LIKE t.{file_pattern_field}"
-        f" AND t.{schema_time_field} < '{date}' "
+        f" AND t.{schema_time_field} <= '{date}' "
         f"ORDER BY t.{schema_time_field} DESC "
         f"LIMIT 1;")
 
@@ -168,17 +168,16 @@ def extract_data(root, data_sch, pref, log):  # Todo: ideally, replace with XSLT
             try:
                 record[field_name] = parse_val(raw_val, attrib_type)
             except ValueError:
-                # Todo: start using `logging` instead
-                log(f"\textract_data: [error] Couldn't parse `@{attrib}` for a `{root.tag}` node\n"
+                log(f"\textract_data: [error] Couldn''t parse `@{attrib}` for a `{root.tag}` node\n"
                     f"\t                      (wrong attribute type)\n"
-                    f"Node's attributes:\n"
+                    f"Node attributes:\n"
                     f"{json.dumps(root.attrib, indent=2)}\n"
                     f"\t                      Writing <parsing error> for `{field_name}`\n")
                 record[field_name] = '<parsing error (0)>'
             except TypeError:
-                log(f"\textract_data: [error] Couldn't parse `@{attrib}` for a `{root.tag}` node\n"
+                log(f"\textract_data: [error] Couldn''t parse `@{attrib}` for a `{root.tag}` node\n"
                     f"\t                      (missing attribute)\n"
-                    f"Node's attributes:\n"
+                    f"Node attributes:\n"
                     f"{json.dumps(root.attrib, indent=2)}\n"
                     f"\t                      Writing <missing> (1) for `{field_name}`\n")
                 record[field_name] = '<missing>'
@@ -238,14 +237,14 @@ def extract_data(root, data_sch, pref, log):  # Todo: ideally, replace with XSLT
                     try:
                         sub_rec = parse_val(raw_val, val_type)
                     except ValueError:
-                        log(f"\textract_data: [error] Couldn't parse `{entry}` for a `{root.tag}` node\n"
+                        log(f"\textract_data: [error] Couldn''t parse `{entry}` for a `{root.tag}` node\n"
                             f"\t                      (wrong value format)\n"
                             f"Node attributes:\n"
                             f"{json.dumps(root.attrib, indent=2)}\n"
                             f"\t                      Writing <parsing error> for `{field_name}`\n")
                         sub_rec = '<parsing error (2)>'
                     except TypeError:
-                        log(f"\textract_data: [error] Couldn't parse `{entry}` for a `{root.tag}` node\n"
+                        log(f"\textract_data: [error] Couldn''t parse `{entry}` for a `{root.tag}` node\n"
                             f"\t                      (missing value)\n"
                             f"Node attributes:\n"
                             f"{json.dumps(root.attrib, indent=2)}\n"

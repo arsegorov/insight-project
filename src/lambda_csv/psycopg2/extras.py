@@ -31,7 +31,7 @@ import time as _time
 import re as _re
 
 try:
-    import logging as _logging
+    import logs as _logging
 except:
     _logging = None
 
