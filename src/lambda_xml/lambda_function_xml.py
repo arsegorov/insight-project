@@ -1,5 +1,6 @@
 import os
 import boto3
+from botocore.exceptions import ClientError
 import psycopg2
 import json
 import yaml
@@ -60,10 +61,17 @@ def main(event, context):
 
     # If the uploaded file is a schema, add it to the Postgres
     if object_key[-3:] == 'yml':
-        log(f'Found a schema file, {object_key}')
+        log(f'Requesting file "{object_key}" from S3')
         write_log(logger, connection, object_key, processing)
 
-        body = obj.get()['Body']
+        try:
+            body = obj.get()['Body']
+        except ClientError as ex:
+            log(f'Error while retrieving "{object_key}": {ex.response["Error"]["Code"]}')
+            write_log(logger, connection, object_key, failed)
+            return
+
+        log(f'Read {object_key} from S3')
 
         try:
             schema = yaml.load(body.read().decode('utf-8'))
@@ -81,11 +89,17 @@ def main(event, context):
 
     # If the uploaded file is the actual data
     elif object_key[-3:] == 'xml' or object_key[-2:] == 'gz':
-        log(f'Found a traffic data file, {object_key}')
+        log(f'Requesting a traffic data file, "{object_key}", from S3')
         write_log(logger, connection, object_key, processing)
 
         # Read the contents of the file
-        body = obj.get()['Body'].read()
+        try:
+            body = obj.get()['Body']
+        except ClientError as ex:
+            log(f'Error while retrieving "{object_key}": {ex.response["Error"]["Code"]}')
+            write_log(logger, connection, object_key, failed)
+            return
+
         log(f'Read {object_key} from S3')
 
         # for gzip-compressed files, decompress first

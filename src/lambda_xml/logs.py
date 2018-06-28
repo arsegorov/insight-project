@@ -6,7 +6,7 @@ processing = 2
 
 xml_log_table = 'xml_log'
 time_field, time_props = 'date_time_utc', 'timestamp without time zone'
-file_field, file_props = 'datafile', 'text'
+file_field, file_props = 'file', 'text'
 status_field, status_props = 'status', 'smallint'  # possible values: succeeded, failed, processing, other = -1
 msgs_field, msgs_props = 'messages', 'text[] NOT NULL'
 xml_log_pk = f'{time_field}'
