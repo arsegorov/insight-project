@@ -9,8 +9,8 @@ processing:
     ns1: 'http://datex2.eu/schema/2/2_0'
   data:
     ns1.siteMeasurements[]:
-      ns1.measurementSiteReference: _.id, str, measurementSiteReference  # key
-      ns1.measurementTimeDefault: text, timestamp, measurementTimeDefault  # sort
+      ns1.measurementSiteReference: _.id, str, measurementSiteReference
+      ns1.measurementTimeDefault: text, timestamp, measurementTimeDefault
       ns1.measuredValue[]:
       - _: '.[@index]'
         _.index: int, Channel
