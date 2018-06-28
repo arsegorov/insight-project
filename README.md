@@ -110,9 +110,9 @@ whereas XPATH would refer to the structure of the XML.
 
 ```yaml
 meta:
-  files: '%Trafficspeed.xml'
+  files: '%Trafficspeed.xml'   # The filename pattern that is used for lookups in PostgreSQL
   version: '2018-06-26T23:13:00Z'
-  description: 'Data from traffic speed and flow sensors, source - NDW, the Netherlands'
+  description: 'Data from traffic speed and flow sensors, source - ndw.nu'
 processing:
   prefixes:
     xsi: 'http://www.w3.org/2001/XMLSchema-instance'
@@ -122,9 +122,10 @@ processing:
     ns1.siteMeasurements[]:
       ns1.measurementSiteReference: _.id, str, measurementSiteReference
       ns1.measurementTimeDefault: text, timestamp, measurementTimeDefault
-      ns1.measuredValue[]:
-      - _: '.[@index]'
-        _.index: int, Channel
+      --- 
+      ns1.measuredValue[]:     # Lists in the schema describe alternatives
+      - _: '.[@index]'         # An underscore refers to the parent node
+        _.index: int, Channel  # E.g., `_.index` refers to the `index` attribute of the parent
         ns1.basicData:
         - _: '.[@xsi:type="TrafficFlow"]'
           _.xsi.type: text, Type

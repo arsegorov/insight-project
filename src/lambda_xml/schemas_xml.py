@@ -63,7 +63,7 @@ def add_schema(schema, connection):
     connection.commit()
 
 
-def find_schema(object_key, connection):
+def find_schema(object_key, date, connection):
     """
     Searches the meta info table for schemas matching the file's name.
     At most one match (with the latest timestamp) is returned.
@@ -78,9 +78,10 @@ def find_schema(object_key, connection):
     cur = connection.cursor()
     cur.execute(
         f"SELECT * FROM {xml_schemas_table} AS t "
-        f"WHERE '{object_key}' LIKE t.{file_pattern_field} "
-        f"ORDER BY {schema_time_field} DESC "
-        f"LIMIT 1;")  # Todo: use the publication date from the xml to filter the schemas
+        f"WHERE '{object_key}' LIKE t.{file_pattern_field}"
+        f" AND t.{schema_time_field} < '{date}' "
+        f"ORDER BY t.{schema_time_field} DESC "
+        f"LIMIT 1;")
 
     rows = cur.fetchall()
     return rows[0] if len(rows) > 0 else None

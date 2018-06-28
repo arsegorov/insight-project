@@ -4,8 +4,8 @@ import psycopg2
 import json
 import yaml
 import decimal
-from xml.etree.ElementTree import fromstring
-import time
+from xml.etree.ElementTree import fromstring, ParseError
+import gzip
 import schemas_xml
 
 ############
@@ -62,13 +62,31 @@ def main(event, context):
         schemas_xml.add_schema(schema, connection)
 
     # If the uploaded file is the actual data
-    elif object_key[-3:] == 'xml':
-        # Find the matching schema in the Postgres
-        schema = schemas_xml.find_schema(object_key, connection)
-
+    elif object_key[-3:] == 'xml' or object_key[-2:] == 'gz':
         # Read the contents of the file
-        body = obj.get()['Body'].read().decode('utf-8')
-        xml_data = fromstring(body)
+        body = obj.get()['Body'].read()
+
+        # for gzip-compressed files, decompress first
+        if object_key[-2:] == 'gz':
+            body = gzip.decompress(body)
+            object_key = object_key.replace('.gz', '.xml')
+
+        try:
+            xml_data = fromstring(body.decode('utf-8'))
+        except ParseError:
+            # Todo: replace with a log message
+            print(f'Couldn\'t parse XML data from "{object_key.split(".")[0]}"')
+            return
+
+        # Find the matching schema in the Postgres
+        date = next(xml_data.iter('{http://datex2.eu/schema/2/2_0}publicationTime')).text
+        schema = schemas_xml.find_schema(object_key, date, connection)
+
+        if schema is None:
+            # Todo: replace with a log message
+            print(f'Couldn\'t find a matching schema for '
+                  f'"{object_key.split(".")[0]}"')
+            return
 
         # Load the schema
         prefix = schema[3]['prefixes']
