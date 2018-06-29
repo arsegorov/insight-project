@@ -1,5 +1,6 @@
 from datetime import datetime
 
+missing = -1
 succeeded = 0
 failed = 1
 processing = 2
@@ -34,7 +35,7 @@ def get_logger():
     return logger, push_message
 
 
-def write_log(logger, connection, filename=None, status=-1):
+def commit_log(logger, connection, filename=None, status=-1):
     create_xml_log_table(connection)
 
     cur = connection.cursor()
