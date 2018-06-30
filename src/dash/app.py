@@ -118,6 +118,8 @@ app.title = u'Data Freeway, an Insight Demo Project'
 app.layout = html.Div(
     style={'font-family': 'sans-serif'},
     children=[
+        dcc.Location(id='url', refresh=False),
+
         html.H1(
             children='Processing Status',
             style={
@@ -196,13 +198,21 @@ def show_date_status(date, n):
     connection = psycopg2.connect(db_connection_string)
     cur = connection.cursor()
 
-    select_latest_file_status = "SELECT max({0}) AS time, {1} AS file, {2} AS status " \
-                                "FROM {3} " \
-                                "GROUP BY {1}, {2}".format(time_field, file_field, status_field, xml_log_table)
+    file = "split_part({}, '.', 1)".format(file_field)
 
-    query = "SELECT file, status " \
-            "FROM ({}) as latest_file_status " \
-            "WHERE file LIKE 'Traf%ic/{}/%Trafficspeed%xml';".format(select_latest_file_status, date)
+    last_log_entry_time = "(SELECT max({0}) AS time, file " \
+                          " FROM (SELECT {0}, {1} AS file from {2}) AS sub " \
+                          " GROUP BY file)".format(time_field, file,
+                                                   xml_log_table)
+
+    query = "SELECT t1.{0}, t1.{1} " \
+            "FROM " \
+            " {2} AS t JOIN {3} AS t1 " \
+            " ON t.time = t1.{4} AND t.file = split_part(t1.{0}, '.', 1) " \
+            "WHERE t.file LIKE 'Traf%ic/{5}/%Trafficspeed';".format(file_field, status_field,
+                                                                   last_log_entry_time, xml_log_table,
+                                                                   time_field,
+                                                                   current_date)
 
     cur.execute(query)
     rows = cur.fetchall()
@@ -232,18 +242,23 @@ def show_log(click_data):
     connection = psycopg2.connect(db_connection_string)
     cur = connection.cursor()
 
+    file = "split_part({}, '.', 1)".format(file_field)
+
     last_message = "CASE " \
                    "  WHEN array_length({0}, 1) > 0 THEN {0}[array_length({0}, 1)] " \
                    "  ELSE '' " \
                    "END".format(msgs_field)
 
-    query = "SELECT max({}) AS time, ({}) AS message " \
-            "FROM {} " \
-            "WHERE file LIKE 'Traf%ic/{}/{:0>2}{:0>2}%Trafficspeed%xml' " \
-            "GROUP BY {}, {}".format(time_field, last_message,
-                                     xml_log_table,
-                                     current_date, hour, minute,
-                                     file_field, msgs_field)
+    last_log_entry = "SELECT max({0}) AS time, {1}, {2} AS file " \
+                     "FROM xml_log " \
+                     "GROUP BY {1}, file".format(time_field, msgs_field, file)
+
+    query = "SELECT ({}) AS message " \
+            "FROM ({}) AS t " \
+            "WHERE file LIKE 'Traf%ic/{}/{:0>2}{:0>2}%Trafficspeed' " \
+            "ORDER BY time DESC " \
+            "LIMIT 1;".format(last_message, last_log_entry,
+                              current_date, hour, minute)
 
     cur.execute(query)
     rows = cur.fetchall()
@@ -252,7 +267,7 @@ def show_log(click_data):
     if len(rows) == 0:
         return ''
 
-    message = rows[0][1]
+    message = rows[0][0]
     return message
 
 

@@ -101,6 +101,7 @@ def main(event, context):
             return
 
         log(f'Read {object_key} from S3')
+        commit_log(logger, connection, object_key, processing)
 
         # for gzip-compressed files, decompress first
         if object_key[-2:] == 'gz':
@@ -146,6 +147,7 @@ def main(event, context):
             commit_log(logger, connection, object_key, failed)
             return
 
+        log(f'Started extracting data from the datafile')
         commit_log(logger, connection, object_key, processing)
 
         # Form the batch to upload to Dynamo
@@ -158,7 +160,7 @@ def main(event, context):
 
         size = len(data)
         log(f'Extracted data from the XML, readings for {size} locations found')
-        log(f'Begin writing to DynamoDB')
+        log(f'Started writing to DynamoDB')
         commit_log(logger, connection, object_key, processing)
 
         # Break the batch into reasonably sized chunks
