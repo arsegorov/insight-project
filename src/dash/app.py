@@ -210,9 +210,9 @@ def show_date_status(date, n):
             " {2} AS t JOIN {3} AS t1 " \
             " ON t.time = t1.{4} AND t.file = split_part(t1.{0}, '.', 1) " \
             "WHERE t.file LIKE 'Traf%ic/{5}/%Trafficspeed';".format(file_field, status_field,
-                                                                   last_log_entry_time, xml_log_table,
-                                                                   time_field,
-                                                                   current_date)
+                                                                    last_log_entry_time, xml_log_table,
+                                                                    time_field,
+                                                                    current_date)
 
     cur.execute(query)
     rows = cur.fetchall()

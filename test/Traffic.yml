@@ -1,5 +1,5 @@
 meta:
-  files: '%Trafficspeed.xml'   # The filename pattern that is used for lookups in PostgreSQL
+  files: '%Trafficspeed%'   # The filename pattern that is used for lookups in PostgreSQL
   version: '2017-06-26T23:13:00Z'
   description: 'Data from traffic speed and flow sensors, source - ndw.nu'
 processing:
