@@ -1,29 +1,34 @@
 #!/usr/bin/env bash
-declare file=trafficspeed-tmp
+declare tmpfile=trafficspeed-tmp
+declare s3bucket=arsegorov-raw
 
-min=
-old_min=
+minute=
+old_minute=
 
-while true; do
-    # current minutes and seconds
-    min=$(date +%M)
-    s=$(date +%S)
+while true
+do
+    # current minute and second
+    minute=$(date +%M)
+    sec=$(date +%S)
 
     # traffic data is published on the 42nd second after the minute
 
     # see if it's past the 45th second, and
     # that it's the first check during this minute
-    if [ "${s}" -gt 45 -a "${min}" != "${old_min}" ]; then
-        wget -O ${file} http://opendata.ndw.nu/trafficspeed.xml.gz
-
-        # using the previous minute, and adding 6 hours to adjust for the time difference
-        t=$(TZ=Europe/Amsterdam date +%H%M)
+    if [ "${sec}" -gt 45 -a "${minute}" != "${old_minute}" ]
+    then
+        # getting the current date and time in the Netherlands
         d=$(TZ=Europe/Amsterdam date +%Y-%m-%d)
+        t=$(TZ=Europe/Amsterdam date +%H%M)
 
-        aws s3 cp ${file} s3://arsegorov-raw/Traffic/${d}/${t}_Trafficspeed.gz
+        # retrieving the real-time-data file
+        wget -O ${tmpfile} http://opendata.ndw.nu/trafficspeed.xml.gz
 
-        # keeping track of the previous check's minute
-        old_min=${min}
+        # saving to the S3 bucket
+        aws s3 cp ${tmpfile} s3://${s3bucket}/Traffic/${d}/${t}_Trafficspeed.gz
+
+        # saving the last check's minute
+        old_minute=${minute}
     fi
-    sleep 10
+    sleep 5
 done
