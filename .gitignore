@@ -110,3 +110,4 @@ venv.bak/
 *.iml
 .idea/
 /misc/
+/setup/
