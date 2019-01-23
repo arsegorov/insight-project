@@ -21,9 +21,9 @@ dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 # Database stuff
 #################
 
-meta_db = "'meta'"
-rds_db_user = "'arsegorovDB'"
-rds_host = "'metainstance.cagix2mfixd1.us-east-1.rds.amazonaws.com'"
+meta_db = "'traffic_db'"
+rds_db_user = "'wengong'"
+rds_host = "'metadb.cjnq5tu75jam.us-east-1.rds.amazonaws.com'"
 password = os.environ.get('PGPASSWORD')
 
 connection = psycopg2.connect(f"dbname={meta_db} "

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 declare tmpfile=trafficspeed-tmp
-declare s3bucket=arsegorov-raw
+# declare s3bucket=arsegorov-raw
+declare s3bucket=wengong
 
 minute=
 old_minute=
