@@ -1,4 +1,6 @@
 ## install on devopsgong@osboxes (locally)
+devopsgong@osboxes:~$ python --version
+Python 3.6.5 :: Anaconda, Inc.
 
 
 ## install on EC2 instance
