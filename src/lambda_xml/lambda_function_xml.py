@@ -21,18 +21,17 @@ dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 # Database stuff
 #################
 
-meta_db = "'traffic_db'"
-rds_db_user = "'wengong'"
-rds_host = "'metadb.cjnq5tu75jam.us-east-1.rds.amazonaws.com'"
+rds_host  = os.environ.get('DB_HOST')
+dbname = os.environ.get('DB_NAME')
+rds_db_user  = os.environ.get('DB_USER')
 password = os.environ.get('PGPASSWORD')
 
-connection = psycopg2.connect(f"dbname={meta_db} "
-                              f"user={rds_db_user} "
-                              f"host={rds_host} "
+connection = psycopg2.connect(f"dbname='{dbname}' "
+                              f"user='{rds_db_user}' "
+                              f"host='{rds_host}' "
                               f"password='{password}'")
 
 traffic_table = dynamodb.Table('TrafficSpeed')
-
 
 # Helper class to convert a DynamoDB item to JSON.
 class DecimalEncoder(json.JSONEncoder):
