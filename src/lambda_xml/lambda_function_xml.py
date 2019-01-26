@@ -21,15 +21,17 @@ dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 # Database stuff
 #################
 
-rds_host  = os.environ.get('DB_HOST')
-dbname = os.environ.get('DB_NAME')
-rds_db_user  = os.environ.get('DB_USER')
+db_host = os.environ.get('DB_HOST')
+db_name = os.environ.get('DB_NAME')
+db_user = os.environ.get('DB_USER')
 password = os.environ.get('PGPASSWORD')
 
-connection = psycopg2.connect(f"dbname='{dbname}' "
-                              f"user='{rds_db_user}' "
-                              f"host='{rds_host}' "
-                              f"password='{password}'")
+db_connection_string = f"dbname='{db_name}' " + \
+    f"user='{db_user}' " + \
+    f"host='{db_host}' " + \
+    f"password='{password}'"
+
+connection = psycopg2.connect(db_connection_string)
 
 traffic_table = dynamodb.Table('TrafficSpeed')
 

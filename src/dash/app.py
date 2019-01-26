@@ -176,15 +176,15 @@ def init_date(n):
 # Database connection
 ######################
 
-meta_db = "'traffic_db'"
-rds_db_user = "'wengong'"
-rds_host = "'metadb.cjnq5tu75jam.us-east-1.rds.amazonaws.com'"
+db_host = os.environ.get('DB_HOST')
+db_name = os.environ.get('DB_NAME')
+db_user = os.environ.get('DB_USER')
 password = os.environ.get('PGPASSWORD')
 
-db_connection_string = "dbname={} ".format(meta_db) \
-                       + "user={} ".format(rds_db_user) \
-                       + "host={} ".format(rds_host) \
-                       + "password='{}'".format(password)
+db_connection_string = f"dbname='{db_name}' " + \
+    f"user='{db_user}' " + \
+    f"host='{db_host}' " + \
+    f"password='{password}'"
 
 xml_log_table = 'xml_log'
 time_field = 'date_time_utc'
