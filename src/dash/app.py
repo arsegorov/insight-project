@@ -98,7 +98,7 @@ app = dash.Dash()
 app.title = u'Data Freeway, an Insight Demo Project'
 
 refresh_rate = 5  # in seconds
-current_date = datetime.now(timezone('Europe/Amsterdam')).date()
+current_date = datetime.now(timezone('Europe/Amsterdam')).date() # 2019-01-26
 
 app.layout = html.Div(
     style={'font-family': 'sans-serif'},
@@ -166,7 +166,7 @@ app.layout = html.Div(
     inputs=[Input('interval-component', 'n_intervals')]
 )
 def init_date(n):
-    global current_date
+    global current_date  # 2019-01-26
     if n == 0:
         current_date = datetime.now(timezone('Europe/Amsterdam')).date()
     return current_date
@@ -176,10 +176,10 @@ def init_date(n):
 # Database connection
 ######################
 
-db_host = os.environ.get('DB_HOST')
-db_name = os.environ.get('DB_NAME')
-db_user = os.environ.get('DB_USER')
-password = os.environ.get('PGPASSWORD')
+db_host = os.environ.get('AWS_PG_DB_HOST')
+db_name = os.environ.get('AWS_PG_DB_NAME')
+db_user = os.environ.get('AWS_PG_DB_USER')
+password = os.environ.get('AWS_PG_DB_PASS')
 
 db_connection_string = f"dbname='{db_name}' " + \
     f"user='{db_user}' " + \
@@ -282,5 +282,5 @@ def show_log(click_data, n):
 if __name__ == '__main__':
     app.run_server(
         host='0.0.0.0',
-        port=80
+        port=5000
     )

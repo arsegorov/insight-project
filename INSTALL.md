@@ -1,3 +1,11 @@
+upload-lambda-xml.sh : 
+	upload lambda function
+src/dash/app.py : 
+	Dash/Flask file
+src/retrieve-realtime-data.sh :
+	download Traffic data everytime, run from commandline
+
+
 ## install on devopsgong@osboxes (locally)
 devopsgong@osboxes:~$ python --version
 Python 3.6.5 :: Anaconda, Inc.
@@ -6,6 +14,7 @@ Python 3.6.5 :: Anaconda, Inc.
 ## install on EC2 instance
 ssh to jenkins instance
 $ ssh -i "~/.ssh/wen-IAM-keypair.pem" ec2-user@ec2-52-3-227-246.compute-1.amazonaws.com
+
 
 
 install python 3.6 on Amazon Linux

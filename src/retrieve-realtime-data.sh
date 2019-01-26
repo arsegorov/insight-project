@@ -1,7 +1,16 @@
 #!/usr/bin/env bash
 declare tmpfile=trafficspeed-tmp
 # declare s3bucket=arsegorov-raw
-declare s3bucket=wengong
+# declare s3bucket=wengong
+
+if [[ -z "${AWS_S3_BUCKET}" ]]; then
+  echo "AWS_S3_BUCKET env var undefined"
+  exit
+else
+  s3bucket=${AWS_S3_BUCKET}
+fi
+
+
 
 minute=
 old_minute=
