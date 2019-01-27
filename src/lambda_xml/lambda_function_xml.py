@@ -115,7 +115,7 @@ def main(event, context):
                 commit_log(logger, connection, object_key, failed)
                 return
 
-        log('Decompressed the GZIP data')
+            log('Decompressed the GZIP data')
 
         try:
             xml_data = fromstring(contents.decode('utf-8'))
