@@ -4,6 +4,130 @@ src/dash/app.py :
 	Dash/Flask file
 src/retrieve-realtime-data.sh :
 	download Traffic data everytime, run from commandline
+	* change while True to be 2019-04-01
+
+Lambda settings
+Timeout=15 mins (max)
+
+Lambda testing Steps:
+============================
+setup Lambda
+https://console.aws.amazon.com/lambda/home?region=us-east-1#/functions/preprocess_xml?tab=graph
+
+use IAM to grant resource permission to Lambda
+https://console.aws.amazon.com/iam/home?region=us-east-1#/roles/lambda_basic_execution
+
+use CloudWatch to view Lambda log for each test
+https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#logStream:group=/aws/lambda/preprocess_xml;streamFilter=typeLogStreamPrefix
+
+use S3 to monitor file upload (as Lambda trigger)
+https://us-east-1.console.aws.amazon.com/s3/buckets/wengong/Traffic/2019-01-27/?region=us-east-1&tab=overview#
+
+use pgAdmin4 browser clinet - 
+http://127.0.0.1:61627/browser/
+to view schema and log activities
+	select * from xml_log;   /* monitor job */
+	select * from xml_schemas;  /* check schema */
+
+use AWS DynamoDB console to view Traffic data
+https://console.aws.amazon.com/dynamodb/home?region=us-east-1#tables:selected=TrafficSpeed;tab=items
+
+
+run Dash 
+devopsgong@osboxes:~/GitHub/insight-project/src/dash
+$ python3 app.py
+Running on http://0.0.0.0:5000/
+
+Test case 1: upload schema - Traffic.yml
+devopsgong@osboxes:~/GitHub/insight-project/test$ aws s3 cp Traffic.yml s3://wengong/Traffic/test/Traffic.yml
+
+Test case 2: upload data - Traffic.yml
+devopsgong@osboxes:~/GitHub/insight-project/test$ aws s3 cp sample_Trafficspeed.xml s3://wengong/Traffic/test/Trafficspeed.xml
+
+
+Lambda testing issues:
+============================
+
+1) 
+not authorized to perform: dynamodb
+https://stackoverflow.com/questions/34784804/aws-dynamodb-issue-user-is-not-authorized-to-perform-dynamodbputitem-on-resou
+
+
+2)
+{"2019-01-27 06:36:35.759564: Requesting file `Traffic/test/Traffic.yml` from S3","2019-01-27 06:36:36.008564: Error while retrieving `Traffic/test/Traffic.yml`: AccessDenied"}
+https://stackoverflow.com/questions/35589641/aws-lambda-function-getting-access-denied-when-getobject-from-s3
+
+
+3) 
+not authorized to perform: dynamodb:BatchWriteItem on resource
+https://stackoverflow.com/questions/34784804/aws-dynamodb-issue-user-is-not-authorized-to-perform-dynamodbputitem-on-resou
+
+revise policy for lambda_basic_execution role
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "arn:aws:logs:*:*:*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject",
+                "s3:PutObject"
+            ],
+            "Resource": "arn:aws:s3:::*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:DescribeTable",
+                "dynamodb:GetItem",
+                "dynamodb:PutItem"            ],
+            "Resource": "arn:aws:dynamodb:::*"
+        }
+    ]
+}
+
+An error occurred (AccessDeniedException) when calling the BatchWriteItem operation: User: arn:aws:sts::629309645488:assumed-role/lambda_basic_execution/preprocess_xml is not authorized to perform: dynamodb:BatchWriteItem on resource: arn:aws:dynamodb:us-east-1:629309645488:table/TrafficSpeed: ClientError
+
+        {
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:DescribeTable",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:GetItem",
+                "dynamodb:PutItem"            ],
+            "Resource": "arn:aws:dynamodb:us-east-1:629309645488:table/TrafficSpeed"
+        }
+
+
+4)
+REPORT RequestId: 978fd8e8-bb6f-46b7-af24-54ef01f7efbd	Duration: 8398.55 ms	Billed Duration: 8400 ms Memory Size: 128 MB	Max Memory Used: 128 MB	
+
+go to Lambda > Configure > Basic settings
+increase Max Memory to 3 GB, Save
+
+5) 
+An error occurred (ProvisionedThroughputExceededException) when calling the BatchWriteItem operation (reached max retries: 9): The level of configured provisioned throughput for the table was exceeded. Consider increasing your provisioning level with the UpdateTable API.: ProvisionedThroughputExceededException
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ## install on devopsgong@osboxes (locally)

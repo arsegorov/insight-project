@@ -52,3 +52,17 @@ def commit_log(logger, connection, filename=None, status=-1):
     # Empty the local log after committing to the database
     logger[1] = []
     logger[0] = datetime.utcnow()
+
+# simplify log
+def log_msg(msg, connection, filename=None, status=-1):
+    #create_xml_log_table(connection)
+    time_stamp = datetime.utcnow()
+    log_lines = "ARRAY['" + msg + "']"
+    cur = connection.cursor()
+    cur.execute(
+        f"INSERT INTO {xml_log_table} ({time_field}, {file_field}, {status_field}, {msgs_field}) "
+        f"VALUES ('{time_stamp}', '{filename}', {status}, {log_lines});"
+        )
+
+    connection.commit()
+    cur.close()

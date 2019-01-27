@@ -8,7 +8,7 @@ import decimal
 from xml.etree.ElementTree import fromstring, ParseError
 import gzip
 import schemas_xml
-from logs import get_logger, commit_log, succeeded, failed, processing
+from logs import log_msg, get_logger, commit_log, succeeded, failed, processing
 
 ############
 # AWS stuff
@@ -53,7 +53,9 @@ def main(event, context):
     :param event: the event received from the s3 bucket
     :param context: the runtime environment information
     """
-    logger, log = get_logger()
+    print(event)
+        
+    logger, log = get_logger()  # used mainly by extract_data
 
     bucket_name = event['Records'][0]['s3']['bucket']['name']
     object_key = event['Records'][0]['s3']['object']['key']
@@ -62,70 +64,61 @@ def main(event, context):
 
     # If the uploaded file is a schema, add it to the Postgres
     if object_key[-3:] == 'yml':
-        log(f'Requesting file `{object_key}` from S3')
+
+        log_msg('Requesting file from S3', connection, object_key, 5)
 
         try:
             body = obj.get()['Body']
             contents = body.read()
         except ClientError as ex:
-            log(f'Error while retrieving `{object_key}`: {ex.response["Error"]["Code"]}')
-            commit_log(logger, connection, object_key, failed)
+            log_msg(f'Error: {ex.response["Error"]["Code"]}', connection, object_key, failed)
             return
 
-        log(f'Read `{object_key}` from S3')
+        log_msg('Read contents from S3', connection, object_key, 5)
 
         try:
             schema = yaml.load(contents.decode('utf-8'))
-            log(f'Read the schema from `{object_key}`')
 
             schemas_xml.add_schema(schema, connection)
-            log(f'Put the schema from `{object_key}` into the database')
+            log_msg('Add schema to database', connection, object_key, 5)
         except:
-            log(f"Couldn''t process `{object_key}`")
-            commit_log(logger, connection, object_key, failed)
+            log_msg('Failed to process schema', connection, object_key, failed)
             return
 
-        log(f'Finished processing schema from `{object_key}`')
-        commit_log(logger, connection, object_key, succeeded)
+        log_msg('Finished processing schema',connection, object_key, succeeded)
 
     # If the uploaded file is the actual data
     elif object_key[-3:] == 'xml' or object_key[-2:] == 'gz':
-        log(f'Requesting a traffic data file, `{object_key}`, from S3')
-        commit_log(logger, connection, object_key, processing)
+        log_msg('Requesting traffic data file', connection, object_key, 5)
 
         # Read the contents of the file
         try:
             body = obj.get()['Body']
             contents = body.read()
         except ClientError as ex:
-            log(f'Error while retrieving `{object_key}`: {ex.response["Error"]["Code"]}')
-            commit_log(logger, connection, object_key, failed)
+            log_msg(f'Failed to read data: {ex.response["Error"]["Code"]}', connection, object_key, failed)
             return
 
-        log(f'Read `{object_key}` from S3')
-        commit_log(logger, connection, object_key, processing)  # committing often because the process takes minutes
+        log_msg('Read data from S3', connection, object_key, processing)
 
         # for gzip-compressed files, decompress first
         if object_key[-2:] == 'gz':
-            log('Found GZIP extension')
+            log_msg('Data in GZ format', connection, object_key, 5)
             try:
                 contents = gzip.decompress(contents)
             except:
-                log("Couldn''t decompress the GZIP data")
-                commit_log(logger, connection, object_key, failed)
+                log_msg("Failed to decompress .gz data", connection, object_key, failed)
                 return
 
-            log('Decompressed the GZIP data')
+            log_msg('Decompressed the GZIP data', connection, object_key, 5)
 
         try:
             xml_data = fromstring(contents.decode('utf-8'))
-            log('Read the XML data')
         except ParseError:
-            log(f"Couldn''t parse XML data from \"{object_key.split('.')[0]}\"")
-            commit_log(logger, connection, object_key, failed)
+            log_msg("Failed to parse XML data", connection, object_key, failed)
             return
 
-        log('Read the XML data')  # The next step is quick, so not committing here
+        log_msg('Read the XML data', connection, object_key, 5)
 
         # Find the matching schema in the Postgres
         date = next(
@@ -135,42 +128,37 @@ def main(event, context):
                                          connection)
 
         if schema is None:
-            log(f"Couldn''t find a matching schema for"
-                f' `{object_key.split(".")[0]}`'
-                f' in the database')
-            commit_log(logger, connection, object_key, failed)
+            log_msg("Failed to find matching schema", connection, object_key, failed)
             return
 
-        log(f'Found a matching schema in the database')
+        log_msg('Found matching schema in database', connection, object_key, 5)
 
         # Load the schema
         try:
             xml_prefixes = schema[3]['prefixes']
             data_schema = schema[3]['data']
         except:
-            log(f'Unexpected schema format')
-            commit_log(logger, connection, object_key, failed)
+            log_msg(f'Unexpected schema format', connection, object_key, failed)
             return
 
-        log(f'Started extracting data from the datafile')
-        commit_log(logger, connection, object_key, processing)
+        log_msg("Start extracting data ...", connection, object_key, processing)
 
         # Form the data to upload to Dynamo
-        data = schemas_xml \
-            .extract_data(xml_data,
+        data = schemas_xml.extract_data(xml_data,
                           data_schema,
                           xml_prefixes,
-                          log) \
-            .popitem()[1]
+                          log).popitem()[1]
+
+        commit_log(logger, connection, object_key, processing)
 
         size = len(data)
-        log(f'Extracted data from `{object_key}`, found readings for {size} locations')
-        log(f'Started writing to DynamoDB')
-        commit_log(logger, connection, object_key, processing)
+        log_msg(f'Writing {size} locations to DynamoDB', connection, object_key, processing)
 
         # Break the batch into reasonably sized chunks
         chunk_size = 500
         for i in range(0, size, chunk_size):
+            if i > 2*chunk_size :
+                break
             j = min(size, i + chunk_size)
 
             with traffic_table.batch_writer(
@@ -179,7 +167,6 @@ def main(event, context):
                 for item in data[i:j]:
                     batch.put_item(Item=item)
 
-            log(f'Sent data for items {i}-{j}')
+            log_msg(f'Wrote items {i}-{j}', connection, object_key,processing)
 
-        log(f'Finished processing traffic data from `{object_key}`')
-        commit_log(logger, connection, object_key, succeeded)
+        log_msg('Finished processing traffic data', connection, object_key, succeeded)
