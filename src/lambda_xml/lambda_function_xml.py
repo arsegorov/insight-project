@@ -65,7 +65,7 @@ def main(event, context):
     # If the uploaded file is a schema, add it to the Postgres
     if object_key[-3:] == 'yml':
 
-        log_msg('Requesting file from S3', connection, object_key, 5)
+        log_msg('Requesting file from S3', connection, object_key, processing)
 
         try:
             body = obj.get()['Body']
@@ -74,13 +74,13 @@ def main(event, context):
             log_msg(f'Error: {ex.response["Error"]["Code"]}', connection, object_key, failed)
             return
 
-        log_msg('Read contents from S3', connection, object_key, 5)
+        log_msg('Read contents from S3', connection, object_key, processing)
 
         try:
             schema = yaml.load(contents.decode('utf-8'))
 
             schemas_xml.add_schema(schema, connection)
-            log_msg('Add schema to database', connection, object_key, 5)
+            log_msg('Add schema to database', connection, object_key, processing)
         except:
             log_msg('Failed to process schema', connection, object_key, failed)
             return
@@ -89,7 +89,7 @@ def main(event, context):
 
     # If the uploaded file is the actual data
     elif object_key[-3:] == 'xml' or object_key[-2:] == 'gz':
-        log_msg('Requesting traffic data file', connection, object_key, 5)
+        log_msg('Requesting traffic data file', connection, object_key, processing)
 
         # Read the contents of the file
         try:
@@ -103,14 +103,14 @@ def main(event, context):
 
         # for gzip-compressed files, decompress first
         if object_key[-2:] == 'gz':
-            log_msg('Data in GZ format', connection, object_key, 5)
+            log_msg('Data in GZ format', connection, object_key, processing)
             try:
                 contents = gzip.decompress(contents)
             except:
                 log_msg("Failed to decompress .gz data", connection, object_key, failed)
                 return
 
-            log_msg('Decompressed the GZIP data', connection, object_key, 5)
+            log_msg('Decompressed data', connection, object_key, processing)
 
         try:
             xml_data = fromstring(contents.decode('utf-8'))
@@ -118,7 +118,7 @@ def main(event, context):
             log_msg("Failed to parse XML data", connection, object_key, failed)
             return
 
-        log_msg('Read the XML data', connection, object_key, 5)
+        log_msg('Read XML data', connection, object_key, processing)
 
         # Find the matching schema in the Postgres
         date = next(
@@ -131,7 +131,7 @@ def main(event, context):
             log_msg("Failed to find matching schema", connection, object_key, failed)
             return
 
-        log_msg('Found matching schema in database', connection, object_key, 5)
+        log_msg('Found matching schema in DB', connection, object_key, processing)
 
         # Load the schema
         try:
@@ -155,9 +155,9 @@ def main(event, context):
         log_msg(f'Writing {size} locations to DynamoDB', connection, object_key, processing)
 
         # Break the batch into reasonably sized chunks
-        chunk_size = 500
+        chunk_size = 200
         for i in range(0, size, chunk_size):
-            if i > 2*chunk_size :
+            if i >= 2*chunk_size :
                 break
             j = min(size, i + chunk_size)
 

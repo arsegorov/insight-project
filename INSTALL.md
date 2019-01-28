@@ -26,8 +26,12 @@ https://us-east-1.console.aws.amazon.com/s3/buckets/wengong/Traffic/2019-01-27/?
 use pgAdmin4 browser clinet - 
 http://127.0.0.1:61627/browser/
 to view schema and log activities
-	select * from xml_log;   /* monitor job */
 	select * from xml_schemas;  /* check schema */
+	select * from xml_log;   /* monitor job */
+    select * from xml_log 
+        where date_time_utc > timestamp '2019-01-27 10:00:00' 
+        order by date_time_utc desc;
+
 
 use AWS DynamoDB console to view Traffic data
 https://console.aws.amazon.com/dynamodb/home?region=us-east-1#tables:selected=TrafficSpeed;tab=items

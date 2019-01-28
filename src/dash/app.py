@@ -264,7 +264,7 @@ def show_log(click_data, n):
 
     query = "SELECT ({}) AS message ".format(last_message) \
             + "FROM ({}) AS t ".format(last_log_entry) \
-            + "WHERE file LIKE 'Traf%ic/{}/{:0>2}{:0>2}%Trafficspeed' ".format(current_date, hour, minute) \
+            + "WHERE file LIKE 'Traffic/{}/{:0>2}{:0>2}%Trafficspeed' ".format(current_date, hour, minute) \
             + "ORDER BY time DESC " \
             + "LIMIT 1;"
 
