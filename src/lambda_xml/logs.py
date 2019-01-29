@@ -66,3 +66,31 @@ def log_msg(msg, connection, filename=None, status=-1):
 
     connection.commit()
     cur.close()
+
+# return txn id
+def new_txn(connection, filename, begin_datetime):
+    time_stamp = datetime.utcnow()
+    cur = connection.cursor()
+    cur.execute(f"""
+        INSERT INTO xml_txns (filename, begin_datetime) 
+        VALUES ('{filename}', '{begin_datetime}') 
+        returning id;
+    """)
+    connection.commit()
+    rows = cur.fetchall()
+    cur.close()
+    return rows[0][0]
+
+def log_txn(connection, id, status, num_locations=0):
+    end_datetime = datetime.utcnow()
+    cur = connection.cursor()
+    cur.execute(f"""
+        UPDATE xml_txns 
+        SET 
+            end_datetime='{end_datetime}' 
+            ,status={status}
+            ,num_locations={num_locations} 
+        WHERE id = {id};
+    """)
+    connection.commit()
+    cur.close()

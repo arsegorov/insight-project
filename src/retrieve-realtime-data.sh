@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+num_loop=1
+max_loop=10
+
+
 declare tmpfile=trafficspeed-tmp
 # declare s3bucket=arsegorov-raw
 # declare s3bucket=wengong
@@ -44,10 +49,15 @@ old_minute=
 
 while [[ "${d}" < "${insight_end_date}" ]]
 do
+
+    if [ $num_loop -gt $max_loop ]
+    then
+      break
+    fi
+
     # current minute and second
     minute=$(date +%M)
     sec=$(date +%S)
-    echo "${d} ${t}"
 
     # traffic data is published on the 42nd second after the minute
 
@@ -58,6 +68,7 @@ do
         # getting the current date and time in the Netherlands
         d=$(TZ=Europe/Amsterdam date +%Y-%m-%d)
         t=$(TZ=Europe/Amsterdam date +%H%M)
+        echo "${d} ${t}"
 
         # retrieving the real-time-data file
         wget -O ${tmpfile} http://opendata.ndw.nu/trafficspeed.xml.gz
@@ -68,8 +79,15 @@ do
         # saving to the S3 bucket
         aws s3 cp ${tmpfile} s3://${s3bucket}/Traffic/${d}/${t}_Trafficspeed.gz
 
+        mv -f ${tmpfile} tmp/
+
         # saving the last check's minute
         old_minute=${minute}
+
+        let num_loop=num_loop+1
+
     fi
+
+
     sleep 5
 done

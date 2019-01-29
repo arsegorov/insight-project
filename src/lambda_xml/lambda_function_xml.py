@@ -8,7 +8,8 @@ import decimal
 from xml.etree.ElementTree import fromstring, ParseError
 import gzip
 import schemas_xml
-from logs import log_msg, get_logger, commit_log, succeeded, failed, processing
+from logs import new_txn, log_txn, log_msg, get_logger, commit_log, succeeded, failed, processing
+from datetime import datetime
 
 ############
 # AWS stuff
@@ -54,11 +55,15 @@ def main(event, context):
     :param context: the runtime environment information
     """
     print(event)
-        
+
+
     logger, log = get_logger()  # used mainly by extract_data
 
     bucket_name = event['Records'][0]['s3']['bucket']['name']
     object_key = event['Records'][0]['s3']['object']['key']
+
+    # open new transaction / get its id
+    id_txn = new_txn(connection, object_key, datetime.utcnow())
 
     obj = s3.Object(bucket_name, object_key)
 
@@ -72,6 +77,7 @@ def main(event, context):
             contents = body.read()
         except ClientError as ex:
             log_msg(f'Error: {ex.response["Error"]["Code"]}', connection, object_key, failed)
+            log_txn(connection, id_txn, failed)
             return
 
         log_msg('Read contents from S3', connection, object_key, processing)
@@ -83,9 +89,13 @@ def main(event, context):
             log_msg('Add schema to database', connection, object_key, processing)
         except:
             log_msg('Failed to process schema', connection, object_key, failed)
+            log_txn(connection, id_txn, failed)
             return
 
         log_msg('Finished processing schema',connection, object_key, succeeded)
+
+        # schema added successfully
+        log_txn(connection, id_txn, succeeded)
 
     # If the uploaded file is the actual data
     elif object_key[-3:] == 'xml' or object_key[-2:] == 'gz':
@@ -97,6 +107,7 @@ def main(event, context):
             contents = body.read()
         except ClientError as ex:
             log_msg(f'Failed to read data: {ex.response["Error"]["Code"]}', connection, object_key, failed)
+            log_txn(connection, id_txn, failed)
             return
 
         log_msg('Read data from S3', connection, object_key, processing)
@@ -108,6 +119,7 @@ def main(event, context):
                 contents = gzip.decompress(contents)
             except:
                 log_msg("Failed to decompress .gz data", connection, object_key, failed)
+                log_txn(connection, id_txn, failed)
                 return
 
             log_msg('Decompressed data', connection, object_key, processing)
@@ -116,6 +128,7 @@ def main(event, context):
             xml_data = fromstring(contents.decode('utf-8'))
         except ParseError:
             log_msg("Failed to parse XML data", connection, object_key, failed)
+            log_txn(connection, id_txn, failed)
             return
 
         log_msg('Read XML data', connection, object_key, processing)
@@ -129,6 +142,7 @@ def main(event, context):
 
         if schema is None:
             log_msg("Failed to find matching schema", connection, object_key, failed)
+            log_txn(connection, id_txn, failed)
             return
 
         log_msg('Found matching schema in DB', connection, object_key, processing)
@@ -139,6 +153,7 @@ def main(event, context):
             data_schema = schema[3]['data']
         except:
             log_msg(f'Unexpected schema format', connection, object_key, failed)
+            log_txn(connection, id_txn, failed)
             return
 
         log_msg("Start extracting data ...", connection, object_key, processing)
@@ -157,7 +172,7 @@ def main(event, context):
         # Break the batch into reasonably sized chunks
         chunk_size = 200
         for i in range(0, size, chunk_size):
-            if i >= 2*chunk_size :
+            if i >= 2*chunk_size :      # testing 2 chunks
                 break
             j = min(size, i + chunk_size)
 
@@ -170,3 +185,4 @@ def main(event, context):
             log_msg(f'Wrote items {i}-{j}', connection, object_key,processing)
 
         log_msg('Finished processing traffic data', connection, object_key, succeeded)
+        log_txn(connection, id_txn, succeeded, num_locations=size)        
