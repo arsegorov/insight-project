@@ -137,7 +137,7 @@ An error occurred (ProvisionedThroughputExceededException) when calling the Batc
 
 
 
-
+build integration test case, and run it manually successfully
 
 
 
