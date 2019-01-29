@@ -6,6 +6,20 @@ src/retrieve-realtime-data.sh :
 	download Traffic data everytime, run from commandline
 	* change while True to be 2019-04-01
 
+integration test
+=======================
+add table to track transaction:
+    CREATE TABLE xml_txn (
+        id              SERIAL PRIMARY KEY,
+        filename        varchar(100) NOT NULL,
+        begin_datetime  timestamp,
+        end_datetime    timestamp,
+        num_locations   int default 0,
+        status  SMALLINT  default 2  /* 0 - success, 1 - failed, 2 - processing */
+    );
+
+insert into xml_txn(filename,begin_datetime) values ('Traffic/2019-01-28/1839_Trafficspeed.gz', '2019-01-28 17:44:19');
+
 Lambda settings
 Timeout=15 mins (max)
 
