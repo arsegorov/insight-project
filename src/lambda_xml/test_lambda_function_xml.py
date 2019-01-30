@@ -54,17 +54,18 @@ def lambda_xml():
 
 
     # download traffic data
-    cmd = "wget -O trafficspeed.xml.gz http://opendata.ndw.nu/trafficspeed.xml.gz"
+    tmpfile="/tmp/trafficspeed.xml.gz"
+    cmd = "wget -O {tmpfile} http://opendata.ndw.nu/trafficspeed.xml.gz"
     wget=subprocess.run(cmd.split(), stdout=subprocess.PIPE).stdout.decode('utf-8')
 
     cmd = "env TZ=Europe/Amsterdam date +%Y-%m-%d:%H%M"
     dt=subprocess.run(cmd.split(), stdout=subprocess.PIPE).stdout.decode('utf-8')
 
     s3_filename = f"Traffic/{dt[:10]}/{dt[11:15]}_Trafficspeed.gz"
-    cmd = f"aws s3 cp trafficspeed.xml.gz s3://{s3bucket}/{s3_filename}"
+    cmd = f"aws s3 cp {tmpfile} s3://{s3bucket}/{s3_filename}"
     aws_s3_cp=subprocess.run(cmd.split(), stdout=subprocess.PIPE).stdout.decode('utf-8')
 
-    cmd = f"rm trafficspeed.xml.gz"
+    cmd = f"rm -f {tmpfile}"
     rm=subprocess.run(cmd.split(), stdout=subprocess.PIPE).stdout.decode('utf-8')
 
     cd,msg = get_txn_status(connection, s3_filename, poll_freq, poll_timeout)
