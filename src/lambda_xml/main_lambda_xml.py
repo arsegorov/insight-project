@@ -77,3 +77,8 @@ def lambda_xml():
 def test_lambda_xml():
     status_cd, status_msg = lambda_xml()
     assert status_cd == 0
+
+if __name__ == '__main__':
+    print("Start testing ...")
+    print(lambda_xml())
+    print("..........  Done!")
