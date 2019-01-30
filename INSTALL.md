@@ -1,14 +1,15 @@
-upload-lambda-xml.sh : 
-	upload lambda function
-src/dash/app.py : 
-	Dash/Flask file
-src/retrieve-realtime-data.sh :
-	download Traffic data everytime, run from commandline
-	* change while True to be 2019-04-01
+steps to run this project
 
-integration test
-=======================
-add table to track transaction:
+1) upload-lambda-xml.sh : 
+	upload lambda function
+2) src/dash/app.py : 
+	Dash/Flask file
+3) src/retrieve-realtime-data.sh :
+	download Traffic data everytime, run from commandline
+	* change infinite loop to have an end-date (e.g. 2019-04-01)
+
+
+4) add a new table to track transaction and support integration test
     CREATE TABLE xml_txn (
         id              SERIAL PRIMARY KEY,
         filename        varchar(100) NOT NULL,
@@ -18,10 +19,13 @@ add table to track transaction:
         status  SMALLINT  default 2  /* 0 - success, 1 - failed, 2 - processing */
     );
 
+select * from xml_txns order by begin_datetime desc;
+
 insert into xml_txn(filename,begin_datetime) values ('Traffic/2019-01-28/1839_Trafficspeed.gz', '2019-01-28 17:44:19');
 
-Lambda settings
+5) Lambda settings
 Timeout=15 mins (max)
+Memory = 3GB
 
 Lambda testing Steps:
 ============================
@@ -37,12 +41,10 @@ https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#logStream:group=
 use S3 to monitor file upload (as Lambda trigger)
 https://us-east-1.console.aws.amazon.com/s3/buckets/wengong/Traffic/2019-01-27/?region=us-east-1&tab=overview#
 
-use pgAdmin4 browser clinet - 
-http://127.0.0.1:61627/browser/
-to view schema and log activities
+use SQL Workbench to view schema and log activities
 	select * from xml_schemas;  /* check schema */
 	select * from xml_log;   /* monitor job */
-    select * from xml_log 
+	select * from xml_log 
         where date_time_utc > timestamp '2019-01-27 10:00:00' 
         order by date_time_utc desc;
 
