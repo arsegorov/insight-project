@@ -137,6 +137,17 @@ increase Max Memory to 3 GB, Save
 An error occurred (ProvisionedThroughputExceededException) when calling the BatchWriteItem operation (reached max retries: 9): The level of configured provisioned throughput for the table was exceeded. Consider increasing your provisioning level with the UpdateTable API.: ProvisionedThroughputExceededException
 
 
+6) 
+getting python3 to work in jenkins
+https://stackoverflow.com/questions/45986494/getting-python3-to-work-in-jenkins
+
+https://issues.jenkins-ci.org/browse/JENKINS-29007
+Does Jenkins support Python3
+
+
+https://www.stratoscale.com/blog/devops/using-jenkins-build-deploy-python-web-applications-part-2/
+
+build integration test case, and run it manually successfully
 
 
 build integration test case, and run it manually successfully
@@ -173,3 +184,43 @@ $ pip --version
 pip 9.0.3 from /usr/lib/python2.7/dist-packages (python 2.7)
 
 
+
+##########################
+#!/bin/bash
+
+whoami
+# jenkins
+# reset pwd and su - jenkins to install python3 and pytest
+
+pwd
+#/var/lib/jenkins/workspace/data-freeway
+
+hostname
+# ip-10-0-1-188
+
+date
+
+source ~/.aws/env_var
+# define AWS env vars: db_name,db_host,db_user,db_pass
+
+echo ${AWS_S3_BUCKET}
+echo ${AWS_PG_DB_HOST}
+
+source /var/lib/jenkins/py36/bin/activate
+# /home/ec2-user/py3/py36/bin/activate: Permission
+# create virtualenv for jenkins user
+
+which python3
+which pytest
+
+cd src/lambda_xml
+
+# python3 main_lambda_xml.py
+
+pytest -q test_lambda_function_xml.py
+# run pytest
+
+##########################
+
+2019-01-30:
+finally have a working build script running by Jenkins
