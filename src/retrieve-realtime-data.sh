@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 num_loop=1
-max_loop=10
+max_loop=20
 
 
-declare tmpfile=trafficspeed-tmp
+declare tmpfile=/tmp/trafficspeed.xml.gz
 # declare s3bucket=arsegorov-raw
 # declare s3bucket=wengong
 
@@ -79,7 +79,7 @@ do
         # saving to the S3 bucket
         aws s3 cp ${tmpfile} s3://${s3bucket}/Traffic/${d}/${t}_Trafficspeed.gz
 
-        mv -f ${tmpfile} tmp/
+        rm -f ${tmpfile}
 
         # saving the last check's minute
         old_minute=${minute}
