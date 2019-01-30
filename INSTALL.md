@@ -10,7 +10,7 @@ steps to run this project
 
 
 4) add a new table to track transaction and support integration test
-    CREATE TABLE xml_txn (
+    CREATE TABLE xml_txns (
         id              SERIAL PRIMARY KEY,
         filename        varchar(100) NOT NULL,
         begin_datetime  timestamp,
