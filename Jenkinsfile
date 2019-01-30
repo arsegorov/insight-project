@@ -26,8 +26,8 @@ pipeline {
                     which python3
                     which pytest
                     echo "run pytest"
-                    # cd src/lambda_xml
-                    # pytest -q test_lambda_function_xml.py
+                    cd src/lambda_xml
+                    pytest -q test_lambda_function_xml.py
                 '''
             }
         }
