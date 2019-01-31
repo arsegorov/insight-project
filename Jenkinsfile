@@ -5,7 +5,7 @@ pipeline {
             steps {
                 sh '''
                     echo "upload Lambda function"
-                    # ./upload-lambda-xml.sh
+                    ## ./upload-lambda-xml.sh
                 '''
             }
         }
