@@ -79,7 +79,7 @@ do
         # saving to the S3 bucket
         aws s3 cp ${tmpfile} s3://${s3bucket}/Traffic/${d}/${t}_Trafficspeed.gz
 
-        rm -f ${tmpfile}
+        ## rm -f ${tmpfile}
 
         # saving the last check's minute
         old_minute=${minute}
