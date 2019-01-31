@@ -65,8 +65,8 @@ def lambda_xml():
     cmd = f"aws s3 cp {tmpfile} s3://{s3bucket}/{s3_filename}"
     aws_s3_cp=subprocess.run(cmd.split(), stdout=subprocess.PIPE).stdout.decode('utf-8')
 
-    cmd = f"rm -f {tmpfile}"
-    rm=subprocess.run(cmd.split(), stdout=subprocess.PIPE).stdout.decode('utf-8')
+    # cmd = f"rm -f {tmpfile}"
+    # rm=subprocess.run(cmd.split(), stdout=subprocess.PIPE).stdout.decode('utf-8')
 
     cd,msg = get_txn_status(connection, s3_filename, poll_freq, poll_timeout)
 

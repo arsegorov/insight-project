@@ -8,6 +8,9 @@ steps to run this project
 	download Traffic data everytime, run from commandline
 	* change infinite loop to have an end-date (e.g. 2019-04-01)
 
+devopsgong@osboxes:~
+$ ssh -i "~/.ssh/wen-IAM-keypair.pem" ec2-user@ec2-52-3-227-246.compute-1.amazonaws.com
+$ cd /var/lib/jenkins/workspace/insight-project_master/src
 
 4) add a new table to track transaction and support integration test
     CREATE TABLE xml_txns (
@@ -63,6 +66,8 @@ devopsgong@osboxes:~/GitHub/insight-project/test$ aws s3 cp Traffic.yml s3://wen
 
 Test case 2: upload data - Traffic.yml
 devopsgong@osboxes:~/GitHub/insight-project/test$ aws s3 cp sample_Trafficspeed.xml s3://wengong/Traffic/test/Trafficspeed.xml
+
+
 
 
 Lambda testing issues:
