@@ -1,4 +1,5 @@
 import os
+import time
 import boto3
 from botocore.exceptions import ClientError
 import psycopg2
@@ -11,6 +12,9 @@ import schemas_xml
 from logs import new_txn, log_txn, log_msg, get_logger, commit_log, succeeded, failed, processing
 from datetime import datetime
 
+RETRY_EXCEPTIONS = ('ProvisionedThroughputExceededException',
+                    'ThrottlingException')
+                    
 ############
 # AWS stuff
 ############

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 num_loop=1
-max_loop=20
+max_loop=200
 
 
 declare tmpfile=/tmp/trafficspeed.xml.gz

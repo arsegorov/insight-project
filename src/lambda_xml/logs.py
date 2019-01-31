@@ -30,7 +30,9 @@ def get_logger():
     logger = [datetime.utcnow(), []]
 
     def push_message(string):
-        logger[1].append(f'{datetime.utcnow()}: {string}')
+        # debug: don't append if logger has 20 items
+        if len(logger[1]) < 20:
+            logger[1].append(f'{datetime.utcnow()}: {string}')
 
     return logger, push_message
 
