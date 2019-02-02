@@ -10,7 +10,7 @@ import time
 import boto3
 from botocore.exceptions import ClientError
 ####### test error handling ######
-# import psycopg2    
+import psycopg2    
 ##################################
 import json
 import yaml
