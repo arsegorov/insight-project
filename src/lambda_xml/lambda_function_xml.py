@@ -1,11 +1,17 @@
 # test Jenkinsfile 
-# case 1 - add this comment and deploy
+# case 1 - add this comment and deploy 
+# resule : success
+
+# case 2 - intentionally break by commenting out import psycopg2
+
 
 import os
 import time
 import boto3
 from botocore.exceptions import ClientError
-import psycopg2
+####### test error handling ######
+import psycopg2    
+##################################
 import json
 import yaml
 import decimal
