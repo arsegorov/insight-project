@@ -234,3 +234,8 @@ finally have a working build script running by Jenkins
 https://stackoverflow.com/questions/8588768/how-do-i-avoid-the-specification-of-the-username-and-password-at-every-git-push
 
 how to cache auth with git
+
+```
+    $ git config credential.helper store
+    $ git push git+ssh://git@github.com/wgong/insight-project.git HEAD:master
+```
