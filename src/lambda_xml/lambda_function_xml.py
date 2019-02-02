@@ -2,16 +2,14 @@
 # case 1 - add this comment and deploy 
 # resule : success
 
-# case 2 - intentionally break by commenting out import psycopg2
+# case 2 - intentionally break by skipping extract_data
 
 
 import os
 import time
 import boto3
 from botocore.exceptions import ClientError
-####### test error handling ######
 import psycopg2    
-##################################
 import json
 import yaml
 import decimal
@@ -170,6 +168,9 @@ def main(event, context):
             return
 
         log_msg("Start extracting data ...", connection, object_key, processing)
+
+        # skip extract_data
+        return
 
         # Form the data to upload to Dynamo
         data = schemas_xml.extract_data(xml_data,
