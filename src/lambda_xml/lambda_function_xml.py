@@ -68,7 +68,7 @@ def main(event, context):
     print(event)
 
 
-    logger, log = get_logger()  # used mainly by extract_data
+    logger, log = get_logger()  
 
     bucket_name = event['Records'][0]['s3']['bucket']['name']
     object_key = event['Records'][0]['s3']['object']['key']
@@ -170,7 +170,7 @@ def main(event, context):
         log_msg("Start extracting data ...", connection, object_key, processing)
 
         # skip extract_data
-        return
+        #return
 
         # Form the data to upload to Dynamo
         data = schemas_xml.extract_data(xml_data,
