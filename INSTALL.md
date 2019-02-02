@@ -239,3 +239,5 @@ how to cache auth with git
     $ git config credential.helper store
     $ git push git+ssh://git@github.com/wgong/insight-project.git HEAD:master
 ```
+
+push from my own account
