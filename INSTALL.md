@@ -161,6 +161,7 @@ test #2
 
 test #10:
     recreate table xml_txns
+    $ git add .; git commit -m "recreate xml_txns"; git push
 
 
 

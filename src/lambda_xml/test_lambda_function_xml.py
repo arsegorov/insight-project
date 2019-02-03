@@ -4,12 +4,12 @@
 def get_txn_status(connection, s3_filename, poll_freq, poll_timeout):
     import time
     cur = connection.cursor()
-    sql_statement = f"select id,status from xml_txns where filename='{s3_filename}' order by status limit 1;"
+    sql_statement = f"select id,status,msg from xml_txns where filename='{s3_filename}' order by status limit 1;"
     for i in range(int(poll_timeout/poll_freq)):
         cur.execute(sql_statement)
         rows = cur.fetchall()
         if len(rows):
-            id_txn, status = rows[0][0], rows[0][1]
+            id_txn, status, msg = rows[0][0], rows[0][1], rows[0][2]
             if status == 0 or status == 1: 
                 break
         time.sleep(poll_freq)

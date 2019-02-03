@@ -71,8 +71,15 @@ def log_msg(msg, connection, filename=None, status=-1):
 
 # return txn id
 def new_txn(connection, filename, begin_datetime):
-    time_stamp = datetime.utcnow()
+    # detect duplicates
     cur = connection.cursor()
+    cur.execute(f"""
+        select id from xml_txns where filename = '{filename}';
+    """)
+    rows = cur.fetchall()
+    if len(rows):
+        return rows[0][0]
+
     cur.execute(f"""
         INSERT INTO xml_txns (filename, begin_datetime) 
         VALUES ('{filename}', '{begin_datetime}') 
