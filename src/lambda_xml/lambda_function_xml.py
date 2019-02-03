@@ -203,6 +203,4 @@ def main(event, context):
 
         txn_msg = 'Finished processing traffic data'
         log_msg(txn_msg, connection, object_key, succeeded)
-        log_txn(connection, id_txn, succeeded, num_locations=size, msg=txn_msg)
-
-    return       
+        log_txn(connection, id_txn, succeeded, num_locations=size, msg=txn_msg)    

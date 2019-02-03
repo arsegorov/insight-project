@@ -78,4 +78,5 @@ def lambda_xml():
 
 def test_lambda_xml():
     status_cd, status_msg = lambda_xml()
+    print(status_cd, status_msg)
     assert status_cd == 0
