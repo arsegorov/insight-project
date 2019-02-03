@@ -28,6 +28,9 @@ pipeline {
         }
     }
     post {
+        always {
+            git --version
+        }
         success {
             echo 'This build is successful'
             mail bcc: 'wen.g.gong@gmail.com', body: "<b>Build OK</b><br>: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> build URL : ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: '', mimeType: 'text/html', replyTo: '', subject: "OK CI: Project name -> ${env.JOB_NAME}", to: "wen.gong@oracle.com";
