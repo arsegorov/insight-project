@@ -3,6 +3,7 @@
 # query xml_txns table for status
 def get_txn_status(connection, s3_filename, poll_freq, poll_timeout):
     import time
+    status = 2  # assume status in processing
     cur = connection.cursor()
     sql_statement = f"select id,status,msg from xml_txns where filename='{s3_filename}' order by status limit 1;"
     for i in range(int(poll_timeout/poll_freq)):
@@ -19,6 +20,7 @@ def get_txn_status(connection, s3_filename, poll_freq, poll_timeout):
     elif status == 1:
         ret_msg = "Failed"
     else:
+        status = 1
         ret_msg = "Timeout"
 
     # beyond timeout to check Lambda if fired on test-event
