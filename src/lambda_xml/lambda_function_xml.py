@@ -169,7 +169,7 @@ def main(event, context):
 
         log_msg("Start extracting data ...", connection, object_key, processing)
 
-        # skip extract_data
+        # skip processing
         #return
 
         # Form the data to upload to Dynamo
