@@ -39,7 +39,7 @@ def lambda_xml():
 
     # config
     poll_freq = 10  # 10 sec
-    poll_timeout = 2*60     # 2 min
+    poll_timeout = 2*60     # 5 min
 
     s3bucket = os.environ.get('AWS_S3_BUCKET')
     db_host = os.environ.get('AWS_PG_DB_HOST')

@@ -2,16 +2,14 @@
 # case 1 - add this comment and deploy 
 # resule : success
 
-# case 2 - intentionally break by skipping extracting xml data
+# case 2 - intentionally break by skipping extract_data
 
 
 import os
 import time
 import boto3
 from botocore.exceptions import ClientError
-
 import psycopg2    
-
 import json
 import yaml
 import decimal
@@ -70,7 +68,7 @@ def main(event, context):
     print(event)
 
 
-    logger, log = get_logger()  # used mainly by extract_data
+    logger, log = get_logger()  
 
     bucket_name = event['Records'][0]['s3']['bucket']['name']
     object_key = event['Records'][0]['s3']['object']['key']
@@ -171,9 +169,8 @@ def main(event, context):
 
         log_msg("Start extracting data ...", connection, object_key, processing)
 
-        ############## skip processing #######
-        # return
-        ######################################
+        # skip extract_data
+        #return
 
         # Form the data to upload to Dynamo
         data = schemas_xml.extract_data(xml_data,
