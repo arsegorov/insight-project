@@ -159,6 +159,8 @@ build integration test case, and run it manually successfully
 
 test #2 
 
+test #10:
+    recreate table xml_txns
 
 
 
