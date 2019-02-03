@@ -170,7 +170,7 @@ def main(event, context):
         log_msg("Start extracting data ...", connection, object_key, processing)
 
         # skip processing
-        #return
+        return
 
         # Form the data to upload to Dynamo
         data = schemas_xml.extract_data(xml_data,
