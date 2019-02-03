@@ -83,7 +83,7 @@ def new_txn(connection, filename, begin_datetime):
     cur.close()
     return rows[0][0]
 
-def log_txn(connection, id, status, num_locations=0):
+def log_txn(connection, id, status, num_locations=0, msg=None):
     end_datetime = datetime.utcnow()
     cur = connection.cursor()
     cur.execute(f"""
@@ -92,6 +92,7 @@ def log_txn(connection, id, status, num_locations=0):
             end_datetime='{end_datetime}' 
             ,status={status}
             ,num_locations={num_locations} 
+            ,msg={msg}
         WHERE id = {id};
     """)
     connection.commit()

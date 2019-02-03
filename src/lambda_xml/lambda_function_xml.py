@@ -87,8 +87,9 @@ def main(event, context):
             body = obj.get()['Body']
             contents = body.read()
         except ClientError as ex:
-            log_msg(f'Error: {ex.response["Error"]["Code"]}', connection, object_key, failed)
-            log_txn(connection, id_txn, failed)
+            txn_msg = f'Error with S3: {ex.response["Error"]["Code"]}'
+            log_msg(txn_msg, connection, object_key, failed)
+            log_txn(connection, id_txn, failed, msg=txn_msg)
             return
 
         log_msg('Read contents from S3', connection, object_key, processing)
@@ -99,29 +100,29 @@ def main(event, context):
             schemas_xml.add_schema(schema, connection)
             log_msg('Add schema to database', connection, object_key, processing)
         except:
-            log_msg('Failed to process schema', connection, object_key, failed)
-            log_txn(connection, id_txn, failed)
+            txn_msg = 'Error with processing schema'
+            log_msg(txn_msg, connection, object_key, failed)
+            log_txn(connection, id_txn, failed, txn_msg)
             return
 
-        log_msg('Finished processing schema',connection, object_key, succeeded)
-
         # schema added successfully
-        log_txn(connection, id_txn, succeeded)
+        txn_msg = 'Finished processing schema'
+        log_msg(txn_msg,connection, object_key, succeeded)
+        log_txn(connection, id_txn, succeeded, msg=txn_msg)
 
     # If the uploaded file is the actual data
     elif object_key[-3:] == 'xml' or object_key[-2:] == 'gz':
-        log_msg('Requesting traffic data file', connection, object_key, processing)
+        log_msg('Read data from S3', connection, object_key, processing)
 
         # Read the contents of the file
         try:
             body = obj.get()['Body']
             contents = body.read()
         except ClientError as ex:
-            log_msg(f'Failed to read data: {ex.response["Error"]["Code"]}', connection, object_key, failed)
-            log_txn(connection, id_txn, failed)
+            txn_msg = f'Error with reading data: {ex.response["Error"]["Code"]}'
+            log_msg(txn_msg, connection, object_key, failed)
+            log_txn(connection, id_txn, failed, msg=txn_msg)
             return
-
-        log_msg('Read data from S3', connection, object_key, processing)
 
         # for gzip-compressed files, decompress first
         if object_key[-2:] == 'gz':
@@ -129,8 +130,9 @@ def main(event, context):
             try:
                 contents = gzip.decompress(contents)
             except:
-                log_msg("Failed to decompress .gz data", connection, object_key, failed)
-                log_txn(connection, id_txn, failed)
+                txn_msg = "Error with decompressing .gz data"
+                log_msg(txn_msg, connection, object_key, failed)
+                log_txn(connection, id_txn, failed, msg=txn_msg)
                 return
 
             log_msg('Decompressed data', connection, object_key, processing)
@@ -138,11 +140,10 @@ def main(event, context):
         try:
             xml_data = fromstring(contents.decode('utf-8'))
         except ParseError:
-            log_msg("Failed to parse XML data", connection, object_key, failed)
-            log_txn(connection, id_txn, failed)
+            txn_msg = "Error with parsing XML data"
+            log_msg(txn_msg, connection, object_key, failed)
+            log_txn(connection, id_txn, failed, msg=txn_msg)
             return
-
-        log_msg('Read XML data', connection, object_key, processing)
 
         # Find the matching schema in the Postgres
         date = next(
@@ -152,8 +153,9 @@ def main(event, context):
                                          connection)
 
         if schema is None:
-            log_msg("Failed to find matching schema", connection, object_key, failed)
-            log_txn(connection, id_txn, failed)
+            txn_msg = "Error with finding matching schema"
+            log_msg(txn_msg, connection, object_key, failed)
+            log_txn(connection, id_txn, failed, msg=txn_msg)
             return
 
         log_msg('Found matching schema in DB', connection, object_key, processing)
@@ -163,8 +165,9 @@ def main(event, context):
             xml_prefixes = schema[3]['prefixes']
             data_schema = schema[3]['data']
         except:
-            log_msg(f'Unexpected schema format', connection, object_key, failed)
-            log_txn(connection, id_txn, failed)
+            txn_msg = 'Unexpected schema format'
+            log_msg(txn_msg, connection, object_key, failed)
+            log_txn(connection, id_txn, failed, msg=txn_msg)
             return
 
         log_msg("Start extracting data ...", connection, object_key, processing)
@@ -198,5 +201,8 @@ def main(event, context):
 
             log_msg(f'Wrote items {i}-{j}', connection, object_key,processing)
 
-        log_msg('Finished processing traffic data', connection, object_key, succeeded)
-        log_txn(connection, id_txn, succeeded, num_locations=size)        
+        txn_msg = 'Finished processing traffic data'
+        log_msg(txn_msg, connection, object_key, succeeded)
+        log_txn(connection, id_txn, succeeded, num_locations=size, msg=txn_msg)
+
+    return       
