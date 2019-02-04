@@ -80,8 +80,8 @@ def test_lambda_xml():
     status_cd, status_msg = lambda_xml()
     print(status_cd, status_msg)
 
-    #if status_cd != 0:
-    #    cmd = f"git revert HEAD"
-    #    git_revert=subprocess.run(cmd.split(), stdout=subprocess.PIPE).stdout.decode('utf-8')
+    if status_cd != 0:
+        cmd = f"git revert HEAD"
+        git_revert=subprocess.run(cmd.split(), stdout=subprocess.PIPE).stdout.decode('utf-8')
 
     assert status_cd == 0
