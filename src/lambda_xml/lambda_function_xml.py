@@ -219,4 +219,4 @@ def main(event, context):
         log_msg(txn_msg, connection, object_key, succeeded)
 
         # break build by skipping this
-        # log_txn(connection, id_txn, succeeded, num_locations=size, msg=txn_msg)    
+        log_txn(connection, id_txn, succeeded, num_locations=size, msg=txn_msg)    
