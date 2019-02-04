@@ -51,7 +51,8 @@ db_connection_string = f"dbname='{db_name}' user='{db_user}' host='{db_host}' pa
 
 connection = psycopg2.connect(db_connection_string)
 
-traffic_table = dynamodb.Table('TrafficSpeed')
+# traffic_table = dynamodb.Table('TrafficSpeed')
+traffic_table = dynamodb.Table('Traffic_Speed')
 
 # Helper class to convert a DynamoDB item to JSON.
 class DecimalEncoder(json.JSONEncoder):
