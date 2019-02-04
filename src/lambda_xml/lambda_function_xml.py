@@ -1,8 +1,8 @@
 # test Jenkinsfile 
 # case 1 - add this comment and deploy 
 # resule : success
-
 # case 2 - intentionally break by skipping last log_txn call
+BREAK_BUILD = True
 
 
 import os
@@ -215,8 +215,10 @@ def main(event, context):
 
             log_msg(f'Wrote items {i}-{j}', connection, object_key,processing)
 
+        # break build by skipping this
+        if BREAK_BUILD: 
+            return
+
         txn_msg = 'Finished processing traffic data'
         log_msg(txn_msg, connection, object_key, succeeded)
-
-        # break build by skipping this
         log_txn(connection, id_txn, succeeded, num_locations=size, msg=txn_msg)    
