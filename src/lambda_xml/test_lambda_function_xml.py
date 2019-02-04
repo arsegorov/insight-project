@@ -1,4 +1,7 @@
 # coding: utf-8
+import os
+import psycopg2
+import subprocess
 
 # query xml_txns table for status
 def get_txn_status(connection, s3_filename, poll_freq, poll_timeout):
@@ -35,13 +38,10 @@ def get_txn_status(connection, s3_filename, poll_freq, poll_timeout):
 
 def lambda_xml():
 
-    import os
-    import psycopg2
-    import subprocess
 
     # config
     poll_freq = 10  # 10 sec
-    poll_timeout = 2*60     # 5 min
+    poll_timeout = 1*60     # 1 min
 
     s3bucket = os.environ.get('AWS_S3_BUCKET')
     db_host = os.environ.get('AWS_PG_DB_HOST')
@@ -79,4 +79,9 @@ def lambda_xml():
 def test_lambda_xml():
     status_cd, status_msg = lambda_xml()
     print(status_cd, status_msg)
+
+    if status_cd != 0:
+        cmd = f"git revert HEAD"
+        git_revert=subprocess.run(cmd.split(), stdout=subprocess.PIPE).stdout.decode('utf-8')
+
     assert status_cd == 0

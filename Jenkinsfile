@@ -13,6 +13,7 @@ pipeline {
             steps {
                 sh 'echo "run integration test"'
                 sh '''
+                    which git
                     git --version
                     source ~/.aws/env_var
                     echo ${AWS_S3_BUCKET}
@@ -37,7 +38,7 @@ pipeline {
             echo 'This build failed, alert by email ...'
             mail body: "<b>Build Failed</b><br>: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> build URL : ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: '', mimeType: 'text/html', replyTo: '', subject: "ERROR CI: Project name -> ${env.JOB_NAME}", to: "wen.gong@oracle.com";
             echo 'revert to prior commit'
-            which git
+            git revert HEAD
         }
     }
 }

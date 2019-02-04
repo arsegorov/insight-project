@@ -2,7 +2,7 @@
 # case 1 - add this comment and deploy 
 # resule : success
 
-# case 2 - intentionally break by skipping extract_data
+# case 2 - intentionally break by skipping last log_txn call
 
 
 import os
@@ -51,8 +51,7 @@ db_connection_string = f"dbname='{db_name}' user='{db_user}' host='{db_host}' pa
 
 connection = psycopg2.connect(db_connection_string)
 
-# traffic_table = dynamodb.Table('TrafficSpeed')
-traffic_table = dynamodb.Table('Traffic_Speed')
+traffic_table = dynamodb.Table('TrafficSpeed')
 
 # Helper class to convert a DynamoDB item to JSON.
 class DecimalEncoder(json.JSONEncoder):
@@ -218,4 +217,6 @@ def main(event, context):
 
         txn_msg = 'Finished processing traffic data'
         log_msg(txn_msg, connection, object_key, succeeded)
+
+        # break build by skipping this
         log_txn(connection, id_txn, succeeded, num_locations=size, msg=txn_msg)    
