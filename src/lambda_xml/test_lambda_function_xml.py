@@ -1,9 +1,12 @@
 # coding: utf-8
+BREAK_BUILD=False
+
+
+
 import os
 import psycopg2
 import subprocess
 
-BREAK_BUILD=False
 
 # query xml_txns table for status
 def get_txn_status(connection, s3_filename, poll_freq, poll_timeout):
