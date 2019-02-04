@@ -2,7 +2,7 @@
 # case 1 - add this comment and deploy 
 # resule : success
 # case 2 - intentionally break by skipping last log_txn call
-BREAK_BUILD = True
+BREAK_BUILD=False
 
 
 import os

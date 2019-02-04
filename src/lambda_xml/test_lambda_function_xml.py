@@ -3,7 +3,7 @@ import os
 import psycopg2
 import subprocess
 
-BREAK_BUILD=True
+BREAK_BUILD=False
 
 # query xml_txns table for status
 def get_txn_status(connection, s3_filename, poll_freq, poll_timeout):
