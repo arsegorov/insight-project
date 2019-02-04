@@ -1,6 +1,4 @@
-test/0203/
-test/test1_new.xml
-test/test1_old.xml
+test/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

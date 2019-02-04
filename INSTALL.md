@@ -72,7 +72,8 @@ test case 3:
 ~/GitHub/insight-project/test
 $ aws s3 cp test1_old.xml s3://wengong/Traffic/test/test1_old.xml
 
-$ aws s3 cp test1_old.xml s3://wengong/Traffic/test/test1_old.xml
+## schema changed
+$ aws s3 cp test1_old.xml s3://wengong/Traffic/test/test1_new.xml
 
 
 

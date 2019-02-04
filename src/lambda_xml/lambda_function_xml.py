@@ -12,8 +12,15 @@ from botocore.exceptions import ClientError
 import psycopg2    
 import json
 import yaml
-import decimal
-from xml.etree.ElementTree import fromstring, ParseError
+#import decimal
+from decimal import Decimal
+
+# from xml.etree.ElementTree import fromstring, ParseError
+try:
+    import xml.etree.cElementTree as ET  #  accelerated C implementation
+except ImportError:
+    import xml.etree.ElementTree as ET
+
 import gzip
 import schemas_xml
 from logs import new_txn, log_txn, log_msg, get_logger, commit_log, succeeded, failed, processing
@@ -21,7 +28,9 @@ from datetime import datetime
 
 RETRY_EXCEPTIONS = ('ProvisionedThroughputExceededException',
                     'ThrottlingException')
-                    
+FLAG_DEBUG = False
+NS_PREFIX = '{http://datex2.eu/schema/2/2_0}'
+
 ############
 # AWS stuff
 ############
@@ -38,10 +47,7 @@ db_name = os.environ.get('AWS_PG_DB_NAME')
 db_user = os.environ.get('AWS_PG_DB_USER')
 password = os.environ.get('AWS_PG_DB_PASS')
 
-db_connection_string = f"dbname='{db_name}' " + \
-    f"user='{db_user}' " + \
-    f"host='{db_host}' " + \
-    f"password='{password}'"
+db_connection_string = f"dbname='{db_name}' user='{db_user}' host='{db_host}' password='{password}'"
 
 connection = psycopg2.connect(db_connection_string)
 
@@ -50,13 +56,53 @@ traffic_table = dynamodb.Table('TrafficSpeed')
 # Helper class to convert a DynamoDB item to JSON.
 class DecimalEncoder(json.JSONEncoder):
     def default(self, o):
-        if isinstance(o, decimal.Decimal):
+        if isinstance(o, Decimal):
             if abs(o) % 1 > 0:
                 return float(o)
             else:
                 return int(o)
         return super(DecimalEncoder, self).default(o)
 
+# parse traffic data tree and extract data for DynamoDB
+def extract_traffic_data(tree, ns_prefix=None, flag_debug=False):
+    site_data = []
+    for site in tree.iter(tag=f'{ns_prefix}siteMeasurements'):
+        measure_dic = {}
+
+        for elem in site.iter(tag=f'{ns_prefix}measurementSiteReference'):   # iter over a given node with  tag
+            if flag_debug: print(elem.tag, elem.attrib)
+            measure_dic["measurementSiteReference"] = elem.attrib['id']
+            break 
+
+        for elem in site.iter(tag=f'{ns_prefix}measurementTimeDefault'):   # iter over a given node with  tag
+            if flag_debug: print(elem.tag, elem.attrib, elem.text)
+            measure_dic["measurementTimeDefault"] = elem.text
+            break
+
+        basic_data = []
+        for elem in site.iter(tag=f'{ns_prefix}measuredValue'):
+            data_dic = {}
+            if flag_debug: print("par: ", elem.tag,elem.attrib)
+            if elem.attrib and 'index' in elem.attrib:
+                data_dic["Channel"] = elem.attrib['index']
+            for el in elem.iter():
+                if flag_debug: print("ch: ", el.tag,el.attrib,el.text)
+                if "Channel" not in data_dic: continue
+                if el.tag==f'{ns_prefix}speed':
+                    data_dic["Type"] = 'TrafficSpeed'
+                    data_dic["Speed"] = Decimal(f'{el.text}')
+                    break
+                elif el.tag==f'{ns_prefix}vehicleFlowRate':
+                    data_dic["Type"] = 'TrafficFlow'
+                    data_dic["Flow"] = Decimal(f'{el.text}')
+                    break
+            if data_dic:
+                basic_data.append(data_dic)
+
+        measure_dic["ns1:measuredValue"] = basic_data
+
+        site_data.append(measure_dic)
+    return site_data
 
 def main(event, context):
     """
@@ -67,8 +113,8 @@ def main(event, context):
     """
     print(event)
 
-
-    logger, log = get_logger()  
+    # rewritten
+    # logger, log = get_logger()  
 
     bucket_name = event['Records'][0]['s3']['bucket']['name']
     object_key = event['Records'][0]['s3']['object']['key']
@@ -137,56 +183,18 @@ def main(event, context):
 
             log_msg('Decompressed data', connection, object_key, processing)
 
-        print("DEBUG:\n",contents.decode('utf-8'))
-
-        try:
-            xml_data = fromstring(contents.decode('utf-8'))
-        except ParseError:
-            txn_msg = "Error with parsing XML data"
-            log_msg(txn_msg, connection, object_key, failed)
-            log_txn(connection, id_txn, failed, msg=txn_msg)
-            return
-
-        # Find the matching schema in the Postgres
-        date = next(
-            xml_data.iter('{http://datex2.eu/schema/2/2_0}publicationTime')
-        ).text
-        schema = schemas_xml.find_schema(object_key, date,
-                                         connection)
-
-        if schema is None:
-            txn_msg = "Error with finding matching schema"
-            log_msg(txn_msg, connection, object_key, failed)
-            log_txn(connection, id_txn, failed, msg=txn_msg)
-            return
-
-        log_msg('Found matching schema in DB', connection, object_key, processing)
-
-        # Load the schema
-        try:
-            xml_prefixes = schema[3]['prefixes']
-            data_schema = schema[3]['data']
-        except:
-            txn_msg = 'Unexpected schema format'
-            log_msg(txn_msg, connection, object_key, failed)
-            log_txn(connection, id_txn, failed, msg=txn_msg)
-            return
-
         log_msg("Start extracting data ...", connection, object_key, processing)
+        try:
+            xml_data = ET.fromstring(contents.decode('utf-8'))
+        except ET.ParseError as ex:
+            txn_msg = f'Error with parsing XML data: {ex.response["Error"]["Code"]}'
+            log_msg(txn_msg, connection, object_key, failed)
+            log_txn(connection, id_txn, failed, msg=txn_msg)
+            return
 
-        # skip processing
-        #return
-
-        # Form the data to upload to Dynamo
-        data = schemas_xml.extract_data(xml_data,
-                          data_schema,
-                          xml_prefixes,
-                          log).popitem()[1]
-
-        commit_log(logger, connection, object_key, processing)
+        data = extract_traffic_data(xml_data, NS_PREFIX, FLAG_DEBUG)
 
         print("DEBUG:\n",data[0])
-            
 
         size = len(data)
         log_msg(f'Writing {size} locations to DynamoDB', connection, object_key, processing)
@@ -194,7 +202,7 @@ def main(event, context):
         # Break the batch into reasonably sized chunks
         chunk_size = 200
         for i in range(0, size, chunk_size):
-            if i >= 2*chunk_size :      # testing 2 chunks
+            if i >= 5*chunk_size :  
                 break
             j = min(size, i + chunk_size)
 

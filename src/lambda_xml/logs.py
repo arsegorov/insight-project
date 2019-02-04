@@ -104,3 +104,5 @@ def log_txn(connection, id, status, num_locations=0, msg=None):
     """)
     connection.commit()
     cur.close()
+
+
