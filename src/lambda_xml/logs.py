@@ -99,7 +99,7 @@ def log_txn(connection, id, status, num_locations=0, msg=None):
             end_datetime='{end_datetime}' 
             ,status={status}
             ,num_locations={num_locations} 
-            ,msg={msg}
+            ,msg='{msg}'
         WHERE id = {id};
     """)
     connection.commit()
