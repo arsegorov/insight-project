@@ -137,6 +137,8 @@ def main(event, context):
 
             log_msg('Decompressed data', connection, object_key, processing)
 
+        print("DEBUG:\n",contents.decode('utf-8'))
+
         try:
             xml_data = fromstring(contents.decode('utf-8'))
         except ParseError:
