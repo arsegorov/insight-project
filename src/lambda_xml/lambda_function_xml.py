@@ -183,6 +183,9 @@ def main(event, context):
 
         commit_log(logger, connection, object_key, processing)
 
+        print("DEBUG:\n",data[0])
+            
+
         size = len(data)
         log_msg(f'Writing {size} locations to DynamoDB', connection, object_key, processing)
 
@@ -192,6 +195,7 @@ def main(event, context):
             if i >= 2*chunk_size :      # testing 2 chunks
                 break
             j = min(size, i + chunk_size)
+
 
             with traffic_table.batch_writer(
                     overwrite_by_pkeys=['measurementSiteReference', 'measurementTimeDefault']

@@ -67,6 +67,13 @@ devopsgong@osboxes:~/GitHub/insight-project/test$ aws s3 cp Traffic.yml s3://wen
 Test case 2: upload data - Traffic.yml
 devopsgong@osboxes:~/GitHub/insight-project/test$ aws s3 cp sample_Trafficspeed.xml s3://wengong/Traffic/test/Trafficspeed.xml
 
+## schema changed
+test case 3:
+~/GitHub/insight-project/test
+$ aws s3 cp test1_old.xml s3://wengong/Traffic/test/test1_old.xml
+
+$ aws s3 cp test1_old.xml s3://wengong/Traffic/test/test1_old.xml
+
 
 
 
