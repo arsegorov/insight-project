@@ -172,6 +172,7 @@ test #10:
     $ git add .; git commit -m "recreate xml_txns"; git push
 
 test #11
+test #12
 
 
 
