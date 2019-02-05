@@ -1,6 +1,5 @@
 # coding: utf-8
-#BREAK_BUILD=False
-BREAK_BUILD=True
+BREAK_BUILD=False
 
 
 
@@ -87,10 +86,7 @@ def test_lambda_xml():
     print(status_cd, status_msg)
 
     if BREAK_BUILD and status_cd != 0:
-        cmd = f"git revert HEAD --no-edit"
-        git_revert=subprocess.run(cmd.split(), stdout=subprocess.PIPE).stdout.decode('utf-8')
-
-        cmd = f"git push origin HEAD:master"
+        cmd = f"git revert HEAD"
         git_revert=subprocess.run(cmd.split(), stdout=subprocess.PIPE).stdout.decode('utf-8')
 
     assert status_cd == 0
