@@ -1,4 +1,5 @@
-BREAK_BUILD=False
+#BREAK_BUILD=False
+BREAK_BUILD=True
 # intentionally break by skipping last log_txn call
 
 
