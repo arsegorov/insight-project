@@ -185,6 +185,8 @@ test case #14: revert
 03:34:35 GitHub API Usage: Current quota has 37 remaining (1 over budget). Next quota of 60 in 36 min. Sleeping for 4 min 52 sec.
 03:37:35 GitHub API Usage: Still sleeping, now only 1 min 52 sec remaining.
 
+test case #15
+     chain insight-project and hello-aws-docker projects together
 
 
 
