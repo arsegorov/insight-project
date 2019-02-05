@@ -38,9 +38,9 @@ pipeline {
             echo 'This build failed, alert by email ...'
             mail body: "<b>Build Failed</b><br>: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> build URL : ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: '', mimeType: 'text/html', replyTo: '', subject: "ERROR CI: Project name -> ${env.JOB_NAME}", to: "wen.gong@oracle.com";
 
-            echo 'revert last commmit'
-            git revert HEAD --no-edit
-            git push origin HEAD:master
+            # echo 'revert last commmit'
+            # git revert HEAD --no-edit
+            # git push origin HEAD:master
         }
     }
 }
