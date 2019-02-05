@@ -61,14 +61,19 @@ devopsgong@osboxes:~/GitHub/insight-project/src/dash
 $ python3 app.py
 Running on http://0.0.0.0:5000/
 
-Test case 1: upload schema - Traffic.yml
-devopsgong@osboxes:~/GitHub/insight-project/test$ aws s3 cp Traffic.yml s3://wengong/Traffic/test/Traffic.yml
+Test case #1: upload schema - Traffic.yml
+devopsgong@osboxes:~/GitHub/insight-project/test
+$ aws s3 cp Traffic.yml s3://wengong/Traffic/test/Traffic.yml
 
-Test case 2: upload data - Traffic.yml
-devopsgong@osboxes:~/GitHub/insight-project/test$ aws s3 cp sample_Trafficspeed.xml s3://wengong/Traffic/test/Trafficspeed.xml
+Test case #2: upload data - Traffic.yml
+devopsgong@osboxes:~/GitHub/insight-project/test
+$ aws s3 cp sample_Trafficspeed.xml s3://wengong/Traffic/test/Trafficspeed.xml
+
+$ aws s3 cp test1_old.xml s3://wengong/Traffic/test/Trafficspeed-0204_01.xml
+
 
 ## schema changed
-test case 3:
+test case #3:
 ~/GitHub/insight-project/test
 $ aws s3 cp test1_old.xml s3://wengong/Traffic/test/test1_old.xml
 
@@ -165,17 +170,21 @@ build integration test case, and run it manually successfully
 
 build integration test case, and run it manually successfully
 
-test #2 
+test case #2 
 
-test #10:
+test case #10:
     recreate table xml_txns
     $ git add .; git commit -m "recreate xml_txns"; git push
 
-test #11
+test case #11
 
-test #12
-test #13: negative test
-test #14: revert
+test case #12
+test csae #13: negative test
+test case #14: revert
+     jenkins server not responding; build did not start after git push
+03:34:35 GitHub API Usage: Current quota has 37 remaining (1 over budget). Next quota of 60 in 36 min. Sleeping for 4 min 52 sec.
+03:37:35 GitHub API Usage: Still sleeping, now only 1 min 52 sec remaining.
+
 
 
 
@@ -256,3 +265,4 @@ how to cache auth with git
 ```
 
 push from my own account
+

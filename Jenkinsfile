@@ -13,11 +13,13 @@ pipeline {
             steps {
                 sh 'echo "run integration test"'
                 sh '''
+                    pwd
+                    whoami
                     which git
                     git --version
                     source ~/.aws/env_var
-                    echo ${AWS_S3_BUCKET}
-                    echo ${AWS_PG_DB_HOST}
+                    # echo ${AWS_S3_BUCKET}
+                    # echo ${AWS_PG_DB_HOST}
                     echo "activate py3"
                     source ~/py36/bin/activate
                     which python3
@@ -28,11 +30,21 @@ pipeline {
                 '''
             }
         }
+        stage('Deploy') {
+            steps {
+                sh 'echo "Build Docker image and Deploy"'
+                sh '''
+                    which docker
+                    docker --version
+                    #./build-docker-deploy.sh
+                '''
+            }
+        }
     }
     post {
         success {
             echo 'This build is successful'
-            mail body: "<b>Build OK</b><br>: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> build URL : ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: '', mimeType: 'text/html', replyTo: '', subject: "OK CI: Project name -> ${env.JOB_NAME}", to: "wen.gong@oracle.com";
+            # mail body: "<b>Build OK</b><br>: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> build URL : ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: '', mimeType: 'text/html', replyTo: '', subject: "OK CI: Project name -> ${env.JOB_NAME}", to: "wen.gong@oracle.com";
         }
         failure {
             echo 'This build failed, alert by email ...'
