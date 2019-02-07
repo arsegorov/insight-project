@@ -188,6 +188,24 @@ test case #14: revert
 test case #15
      chain insight-project and hello-aws-docker projects together
 
+config build trigger of hello-aws-docker project to run after  insight-project completes successfully
+see Hello AWS Docker msg in one of 
+
+    0) http://ec2-52-3-227-246.compute-1.amazonaws.com  (jenkins)
+    run retrieve data + dash 
+
+    1) http://ec2-18-234-37-93.compute-1.amazonaws.com   (inst1)
+    2) http://ec2-35-172-234-244.compute-1.amazonaws.com (inst2)
+    has no python3 
+
+    namecheap DSN redirect
+
+    jenkins.s8s.cloud => http://ec2-52-3-227-246.compute-1.amazonaws.com:8080/
+    hello.s8s.cloud => http://ec2-35-172-234-244.compute-1.amazonaws.com/
+    hello2.s8s.cloud => http://ec2-18-234-37-93.compute-1.amazonaws.com/
+    dash.s8s.cloud => http://ec2-52-3-227-246.compute-1.amazonaws.com:5000/
+    github.s8s.cloud => https://github.com/wgong/code2cloud
+
 
 
 
@@ -213,6 +231,21 @@ Python 2.7.15
 
 $ pip --version
 pip 9.0.3 from /usr/lib/python2.7/dist-packages (python 2.7)
+
+    # run dash on ec2 instance - Jenkins
+$ source ~/py3/py36/bin/activate
+$ pip3 install pytz # --user
+$ pip3 install dash # --user
+$ pip3 install dash-renderer # --user
+$ pip3 install dash-html-components # --user
+$ pip3 install dash-core-components # --user
+$ pip3 install plotly # --user
+$ pip3 install psycopg2
+$ cd /home/ec2-user/GitHub/insight-project/src/dash
+$ python3 app.py
+
+    # Error after upgrading pip: cannot import name 'main'
+https://stackoverflow.com/questions/49836676/error-after-upgrading-pip-cannot-import-name-main
 
 
 
