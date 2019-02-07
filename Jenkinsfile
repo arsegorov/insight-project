@@ -39,10 +39,10 @@ pipeline {
                     #./build-docker-deploy.sh
                 '''
             }
-        }
-        post {
-            always {
-                echo "always print this msg"
+            post {
+                always {
+                    echo "always print this msg"
+                }
             }
         }
     }
