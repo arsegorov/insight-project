@@ -119,6 +119,9 @@ def main(event, context):
 
     # open new transaction / get its id
     id_txn = new_txn(connection, object_key, datetime.utcnow())
+    if id_txn < 0:
+        log_msg('Same file be processed now ...', connection, object_key, processing)
+        return
 
     obj = s3.Object(bucket_name, object_key)
 

@@ -77,8 +77,9 @@ def new_txn(connection, filename, begin_datetime):
         select id from xml_txns where filename = '{filename}';
     """)
     rows = cur.fetchall()
+    # return -1 if filename already exists
     if len(rows):
-        return rows[0][0]
+        return -1
 
     cur.execute(f"""
         INSERT INTO xml_txns (filename, begin_datetime) 
