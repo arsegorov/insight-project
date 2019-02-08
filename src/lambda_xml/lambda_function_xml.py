@@ -120,7 +120,7 @@ def main(event, context):
     # open new transaction / get its id
     id_txn = new_txn(connection, object_key, datetime.utcnow())
     if id_txn < 0:
-        log_msg('Same file be processed now ...', connection, object_key, processing)
+        log_msg('Same file being processed now ...', connection, object_key, processing)
         return
 
     obj = s3.Object(bucket_name, object_key)
@@ -201,10 +201,10 @@ def main(event, context):
         log_msg(f'Writing {size} locations to DynamoDB', connection, object_key, processing)
 
         # Break the batch into reasonably sized chunks
-        chunk_size = 200
+        chunk_size = 300
         for i in range(0, size, chunk_size):
             # processing only subset when debugging
-            if FLAG_DEBUG  and i > 3*chunk_size :  
+            if FLAG_DEBUG  and i > 5*chunk_size :  
                 break
 
             j = min(size, i + chunk_size)
