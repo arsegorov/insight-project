@@ -201,11 +201,11 @@ def main(event, context):
         log_msg(f'Writing {size} locations to DynamoDB', connection, object_key, processing)
 
         # Break the batch into reasonably sized chunks
-        chunk_size = 500
+        chunk_size = 400
         for i in range(0, size, chunk_size):
-            # processing a subset for debugging
-            # if i >= 2*chunk_size :  
-            #     break
+            # processing only subset when debugging
+            if FLAG_DEBUG and i >= 3*chunk_size :  
+                break
             j = min(size, i + chunk_size)
 
 
