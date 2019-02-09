@@ -71,7 +71,7 @@ do
         echo "${d} ${t}"
 
         # retrieving the real-time-data file
-        wget -O ${tmpfile} http://opendata.ndw.nu/trafficspeed.xml.gz
+        wget -q -O ${tmpfile} http://opendata.ndw.nu/trafficspeed.xml.gz
 
         # local test
         # cp ${tmpfile} ${d}_${t}_Trafficspeed.gz

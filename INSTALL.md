@@ -152,8 +152,16 @@ go to Lambda > Configure > Basic settings
 increase Max Memory to 3 GB, Save
 
 5) 
-An error occurred (ProvisionedThroughputExceededException) when calling the BatchWriteItem operation (reached max retries: 9): The level of configured provisioned throughput for the table was exceeded. Consider increasing your provisioning level with the UpdateTable API.: ProvisionedThroughputExceededException
+botocore.errorfactory.ProvisionedThroughputExceededException: 
+An error occurred (ProvisionedThroughputExceededException) when calling the BatchWriteItem operation (reached max retries: 9): The level of configured provisioned throughput for the table was exceeded. Consider increasing your provisioning level with the UpdateTable API.
 
+https://stackoverflow.com/questions/31468379/how-to-solve-throughput-error-for-dynamodb
+https://stackoverflow.com/questions/48267318/configured-provision-throughput-was-exceeded
+choose Read/write capacity mode = On Demand
+
+6) 
+how to delete S3 object
+https://stackoverflow.com/questions/3140779/how-to-delete-files-from-amazon-s3-bucket
 
 6) 
 getting python3 to work in jenkins
