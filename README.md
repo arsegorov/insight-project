@@ -134,7 +134,7 @@ A frontend running on Flask displays which files have been processed for a given
 
 
 [sensorsMap]: images/map_small.png
-[pipeline]: images/pipeline.png
+[pipeline]: images/DE-lambda.png
 
 ## Demo
 
