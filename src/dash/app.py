@@ -97,7 +97,7 @@ def table_plot():
 app = dash.Dash()
 app.title = u'Data Freeway, an Insight Demo Project'
 
-refresh_rate = 5  # in seconds
+refresh_rate = 30  # in seconds
 current_date = datetime.now(timezone('Europe/Amsterdam')).date() # 2019-01-26
 
 app.layout = html.Div(

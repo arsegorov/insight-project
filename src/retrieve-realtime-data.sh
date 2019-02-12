@@ -50,10 +50,10 @@ old_minute=
 while [[ "${d}" < "${insight_end_date}" ]]
 do
 
-    if [ $num_loop -gt $max_loop ]
-    then
-      break
-    fi
+    # if [ $num_loop -gt $max_loop ]
+    # then
+    #   break
+    # fi
 
     # current minute and second
     minute=$(date +%M)
