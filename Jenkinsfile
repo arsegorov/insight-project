@@ -30,6 +30,7 @@ pipeline {
                 '''
             }
         }
+        /*
         stage('Deploy') {
             steps {
                 sh 'echo "Build Docker image and Deploy"'
@@ -45,6 +46,7 @@ pipeline {
                 }
             }
         }
+        */
     }
     post {
         success {
