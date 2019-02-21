@@ -1,4 +1,11 @@
-These are the minimal steps
+These are the minimal steps for this project to work.
+
+*WARNING:* when setting up the various services and objects below,
+it'll make things easier if you stick to the same region/availability zone.
+The code in this project uses the `us-east-1` region (N. Virginia) and
+the `us-east-1a` availability zone, but yours might be different.
+ There are some places currently in the project where these values are hard-coded,
+ so you might want to search for those now and replace them.
 
 # IAM
 * Create a group with AdministratorAccess policy (a built-in policy),
@@ -27,23 +34,42 @@ These are the minimal steps
   Keep it private (i.e., check all "Block public access..." checkboxes).
 
 # VPC
-* Create a VPC if doesn't exist, say, `vpc-0`. A /28-size CIDR block
-  should suffice.
+* Create a VPC if one doesn't exist yet, say, `vpc-0`
+  (it will have a multiple-digit numeral following the `vpc-` prefix,
+  but we're keeping it short, for simplicity)<br/>
+  The default VPC will probably have a /16 CIDR block size,
+  but if you're creating a new VPC, a /28 size should more than suffice
     * In the associated Security Group, say, `sg-0`,
       add these **inbound** rules:
   
-      | Type       | Protocol | Port | Source                | Description  |
-      | ---------- | -------- | ---- | --------------------- | ------------ |
-      | Custom TCP | TPC      | 22   | My IP                 | \<any notes> |
-      | Custom TCP | TPC      | 5432 | Custom (`vpc-0` CIDR) | \<any notes> |
+      | Type       | Protocol | Port | Source                      | Description  |
+      | ---------- | -------- | ---- | --------------------------- | ------------ |
+      | Custom TCP | TPC      | 22   | My IP                       | \<any notes> |
+      | Custom TCP | TPC      | 5432 | Custom (use `vpc-0`'s CIDR) | \<any notes> |
       
-        * **Custom TCP**, port 22, **My IP**.
-          This allows SSH access from your local machine
+        * **Custom TCP**, port 22&mdash;This allows
+          SSH access from your local machine, you'll need it
         * **Custom TCP**, port 5432
-          (unless you change the port when creating an RDS instance),
-          enter the CIDR range associated with `vpc-0`.
-          This allows the instances within your VPC to connect to the
-          RDS database.
+          (unless you change the port when creating an RDS instance)&mdash;This allows
+          the instances within your VPC to connect to the RDS database.
+          You could also limit this access to a subnet or a specific EC2 instance by
+          specifying the corresponding CIDR block
+* Create a DynamoDB endpoint
+    * In the **Endpoints** tab, click **Create Endpoint**
+    * On the next screen:
+        * Set **Service Category** to **AWS Services**
+        * From the **Service Name** list, select **com.amazonaws.\<your region>.dynamodb**
+        * In the **VPC** drop-down, select `vpc-0`
+        * Under **Configure route tables**, select the routing table associated with
+          the subnets you're using.<br/>
+          *NOTE:* If you're setting up the project from scratch,
+          there will likely be just one routing table in the list.
+          If not, you can go to the EC2 console and double check:
+          the routing table should be associated with the subnet in which your EC2 instance
+          was created
+          (so you may want to defer creating the endpoint
+          to after creating the EC2 instance, see below for more on creating the instance).
+        * Use the **Full Access** policy
       
         
 # EC2
@@ -67,7 +93,7 @@ These are the minimal steps
       $ ssh ubuntu@<the elastic IP> -i <the .pem file>
       ```
 
-# EC2 Instance
+# The EC2 Instance
 * ssh into the instance, and update ubuntu:
   ```shell
   $ sudo apt update
@@ -124,3 +150,16 @@ These are the minimal steps
       $ source ~/.bashrc
       ```
       
+# DynamoDB
+* Create a table. For this project, call it `TrafficSpeed`
+    * Type in the Primary Key name, `measurementSiteReference`
+    (select the **String** type in the drop-down)
+    * Check the **Add sorting key** checkbox,
+    and type in the Sorting Key name, `measurementTimeDefault` (also **String**)
+    * Uncheck the **Use default settings** checkbox, and select the following underneath it:
+        * Select **Provisioned** capacity
+        * Under **Auto Scaling**, increase the **Minimum provisioned capacity** for
+          both reading and writing to 200 units
+          (this costs more, but you can update this number later, after the table has been used,
+          and you'll have seen how much of the capacity is actually used)
+        * For the **IAM Role**, select **DynamoDB AutoScaling Service Linked Role**
