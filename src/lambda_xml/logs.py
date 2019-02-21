@@ -30,7 +30,9 @@ def get_logger():
     logger = [datetime.utcnow(), []]
 
     def push_message(string):
-        logger[1].append(f'{datetime.utcnow()}: {string}')
+        # debug: don't append if logger has 20 items
+        if len(logger[1]) < 20:
+            logger[1].append(f'{datetime.utcnow()}: {string}')
 
     return logger, push_message
 
@@ -52,3 +54,56 @@ def commit_log(logger, connection, filename=None, status=-1):
     # Empty the local log after committing to the database
     logger[1] = []
     logger[0] = datetime.utcnow()
+
+# simplify log
+def log_msg(msg, connection, filename=None, status=-1):
+    #create_xml_log_table(connection)
+    time_stamp = datetime.utcnow()
+    log_lines = "ARRAY['" + msg + "']"
+    cur = connection.cursor()
+    cur.execute(
+        f"INSERT INTO {xml_log_table} ({time_field}, {file_field}, {status_field}, {msgs_field}) "
+        f"VALUES ('{time_stamp}', '{filename}', {status}, {log_lines});"
+        )
+
+    connection.commit()
+    cur.close()
+
+# return txn id
+def new_txn(connection, filename, begin_datetime):
+    # detect duplicates
+    cur = connection.cursor()
+    cur.execute(f"""
+        select id from xml_txns where filename = '{filename}';
+    """)
+    rows = cur.fetchall()
+    # return -1 if filename already exists
+    if len(rows):
+        return -1
+
+    cur.execute(f"""
+        INSERT INTO xml_txns (filename, begin_datetime) 
+        VALUES ('{filename}', '{begin_datetime}') 
+        returning id;
+    """)
+    connection.commit()
+    rows = cur.fetchall()
+    cur.close()
+    return rows[0][0]
+
+def log_txn(connection, id, status, num_locations=0, msg=None):
+    end_datetime = datetime.utcnow()
+    cur = connection.cursor()
+    cur.execute(f"""
+        UPDATE xml_txns 
+        SET 
+            end_datetime='{end_datetime}' 
+            ,status={status}
+            ,num_locations={num_locations} 
+            ,msg='{msg}'
+        WHERE id = {id};
+    """)
+    connection.commit()
+    cur.close()
+
+

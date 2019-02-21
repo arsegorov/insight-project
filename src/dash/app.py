@@ -97,8 +97,8 @@ def table_plot():
 app = dash.Dash()
 app.title = u'Data Freeway, an Insight Demo Project'
 
-refresh_rate = 5  # in seconds
-current_date = datetime.now(timezone('Europe/Amsterdam')).date()
+refresh_rate = 30  # in seconds
+current_date = datetime.now(timezone('Europe/Amsterdam')).date() # 2019-01-26
 
 app.layout = html.Div(
     style={'font-family': 'sans-serif'},
@@ -166,7 +166,7 @@ app.layout = html.Div(
     inputs=[Input('interval-component', 'n_intervals')]
 )
 def init_date(n):
-    global current_date
+    global current_date  # 2019-01-26
     if n == 0:
         current_date = datetime.now(timezone('Europe/Amsterdam')).date()
     return current_date
@@ -176,15 +176,15 @@ def init_date(n):
 # Database connection
 ######################
 
-meta_db = "'meta'"
-rds_db_user = "'arsegorovDB'"
-rds_host = "'metainstance.cagix2mfixd1.us-east-1.rds.amazonaws.com'"
-password = os.environ.get('PGPASSWORD')
+db_host = os.environ.get('AWS_PG_DB_HOST')
+db_name = os.environ.get('AWS_PG_DB_NAME')
+db_user = os.environ.get('AWS_PG_DB_USER')
+password = os.environ.get('AWS_PG_DB_PASS')
 
-db_connection_string = "dbname={} ".format(meta_db) \
-                       + "user={} ".format(rds_db_user) \
-                       + "host={} ".format(rds_host) \
-                       + "password='{}'".format(password)
+db_connection_string = f"dbname='{db_name}' " + \
+    f"user='{db_user}' " + \
+    f"host='{db_host}' " + \
+    f"password='{password}'"
 
 xml_log_table = 'xml_log'
 time_field = 'date_time_utc'
@@ -264,7 +264,7 @@ def show_log(click_data, n):
 
     query = "SELECT ({}) AS message ".format(last_message) \
             + "FROM ({}) AS t ".format(last_log_entry) \
-            + "WHERE file LIKE 'Traf%ic/{}/{:0>2}{:0>2}%Trafficspeed' ".format(current_date, hour, minute) \
+            + "WHERE file LIKE 'Traffic/{}/{:0>2}{:0>2}%Trafficspeed' ".format(current_date, hour, minute) \
             + "ORDER BY time DESC " \
             + "LIMIT 1;"
 
@@ -282,5 +282,5 @@ def show_log(click_data, n):
 if __name__ == '__main__':
     app.run_server(
         host='0.0.0.0',
-        port=80
+        port=5000
     )
