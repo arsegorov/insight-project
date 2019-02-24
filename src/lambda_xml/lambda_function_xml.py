@@ -26,7 +26,8 @@ rds_db_user = "'arsegorovDB'"
 rds_host = "'metainstance.cagix2mfixd1.us-east-1.rds.amazonaws.com'"
 password = os.environ.get('PGPASSWORD')
 
-connection = psycopg2.connect(f"dbname={meta_db} "
+connection = psycopg2.connect(f'connect_timeout=5 '  # Will break out of the lambda early if it can't connect to RDS
+                              f"dbname={meta_db} "
                               f"user={rds_db_user} "
                               f"host={rds_host} "
                               f"password='{password}'")
