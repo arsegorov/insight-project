@@ -2,6 +2,9 @@ pipeline {
     agent any
     stages {
         stage('Build') {
+            when {
+                changeset "**/lambda_function_xml.py"
+            }
             steps {
                 sh '''
                     echo "upload Lambda function"

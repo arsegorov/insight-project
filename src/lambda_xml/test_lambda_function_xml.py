@@ -55,10 +55,7 @@ def lambda_xml():
     password = os.environ.get('AWS_PG_DB_PASS')
 
     db_connection_string = f"dbname='{db_name}' user='{db_user}' host='{db_host}' password='{password}'"
-
     connection = psycopg2.connect(db_connection_string)
-
-
 
     # download traffic data
     tmpfile="/tmp/trafficspeed.xml.gz"
@@ -72,11 +69,7 @@ def lambda_xml():
     cmd = f"aws s3 cp {tmpfile} s3://{s3bucket}/{s3_filename}"
     aws_s3_cp=subprocess.run(cmd.split(), stdout=subprocess.PIPE).stdout.decode('utf-8')
 
-    # cmd = f"rm -f {tmpfile}"
-    # rm=subprocess.run(cmd.split(), stdout=subprocess.PIPE).stdout.decode('utf-8')
-
     cd,msg = get_txn_status(connection, s3_filename, poll_freq, poll_timeout)
-
     connection.close()
 
     return cd,msg
